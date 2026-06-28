@@ -139,7 +139,7 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
       `Executing SQL: ${sql}` +
       (params ? ` | params: ${JSON.stringify(params)}\n` : "\n");
 
-    this.logger.verbose(formatted);
+    this.logger.debug(formatted);
   }
 
   private getActiveConnection(): QueryConnection {

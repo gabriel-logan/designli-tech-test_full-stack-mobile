@@ -1,98 +1,127 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Designli Stock Alerts Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend NestJS for the React Native + Node developer test. It supports user
+authentication, stock search/quotes/charts through Finnhub, stock price alerts,
+Firebase Cloud Messaging device registration, and real-time quote updates over
+Socket.IO.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Requirements
 
-## Description
+- Node.js with `pnpm`
+- Docker
+- Atlas CLI
+- Finnhub API key
+- Firebase Admin service account JSON if push notifications should be sent
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Environment
 
-## Project setup
+Copy `.env.example` to `.env` and fill the external credentials:
 
 ```bash
-$ pnpm install
+cp .env.example .env
 ```
 
-## Compile and run the project
+Required values:
+
+- `JWT_SECRET`: secret used to sign API tokens.
+- `FINNHUB_API_KEY`: Finnhub API token.
+- `FIREBASE_SERVICE_ACCOUNT_JSON`: optional Firebase Admin service account JSON string.
+- `FIREBASE_SERVICE_ACCOUNT_PATH`: optional path to the Firebase Admin service account JSON file.
+
+Do not use `frontend/android/app/google-services.json` for the backend. That file
+is Android client configuration. For push notifications from the backend, create
+a Firebase Admin SDK private key in Firebase Console > Project settings >
+Service accounts > Generate new private key, then set either:
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/firebase-service-account.json
 ```
 
-## Run tests
+or paste the file contents as one JSON string into:
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
 ```
 
-## Deployment
+## Database
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+The database is PostgreSQL in Docker. Atlas is configured in schema-based mode:
+the desired state lives in `schema.sql`, and no migration files are required.
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm db:up
+pnpm db:schema:apply
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Useful inspection command:
 
-## Resources
+```bash
+pnpm db:schema:inspect
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## Run
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+pnpm dev
+```
 
-## Support
+The API runs at `http://localhost:3000/api`. Swagger is available at
+`http://localhost:3000/api/docs`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Main Endpoints
 
-## Stay in touch
+- `POST /api/auth/register`: create a user and return a bearer token.
+- `POST /api/auth/login`: authenticate and return a bearer token.
+- `GET /api/stocks`: list stocks by exchange or search query.
+- `GET /api/stocks/summary`: quotes and candles for default symbols.
+- `GET /api/stocks/chart?symbols=AAPL,MSFT`: quotes and candles for symbols.
+- `GET /api/stocks/:symbol/quote`: latest Finnhub quote.
+- `GET /api/stocks/:symbol/candles`: candle series for charting.
+- `GET /api/alerts`: list authenticated user's alerts.
+- `POST /api/alerts`: create an alert with `{ "symbol": "AAPL", "targetPrice": 220 }`.
+- `PATCH /api/alerts/:id`: update target price or active flag.
+- `DELETE /api/alerts/:id`: remove an alert.
+- `GET /api/devices`: list registered FCM devices.
+- `POST /api/devices`: register/update an FCM token.
+- `DELETE /api/devices`: remove an FCM token.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+All endpoints except `auth` require `Authorization: Bearer <token>`.
 
-## License
+## Real-time Quotes
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Socket.IO namespace: `/stocks`.
+
+Client event:
+
+```json
+{
+  "event": "subscribe",
+  "data": { "symbols": ["AAPL", "MSFT"] }
+}
+```
+
+Server event:
+
+```json
+{
+  "event": "quotes",
+  "data": [
+    {
+      "symbol": "AAPL",
+      "current": 220.1,
+      "change": 1.2,
+      "percentChange": 0.55
+    }
+  ]
+}
+```
+
+## Validation
+
+```bash
+pnpm lint:fix
+pnpm format
+pnpm build
+pnpm lint
+pnpm test
+```
