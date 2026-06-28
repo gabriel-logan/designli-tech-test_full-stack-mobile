@@ -1,5 +1,8 @@
-import { Logger } from "@nestjs/common";
-import { Interval } from "@nestjs/schedule";
+import {
+  Logger,
+  type OnModuleDestroy,
+  type OnModuleInit,
+} from "@nestjs/common";
 import {
   ConnectedSocket,
   MessageBody,
@@ -10,6 +13,7 @@ import {
 } from "@nestjs/websockets";
 import type { Server, Socket } from "socket.io";
 
+import type { StockQuote } from "./stock.types";
 import { StocksService } from "./stocks.service";
 
 @WebSocketGateway({
@@ -18,14 +22,30 @@ import { StocksService } from "./stocks.service";
   },
   namespace: "stocks",
 })
-export class StocksGateway implements OnGatewayDisconnect {
+export class StocksGateway
+  implements OnGatewayDisconnect, OnModuleDestroy, OnModuleInit
+{
   private readonly logger = new Logger(StocksGateway.name);
   private readonly clientSymbols = new Map<string, Set<string>>();
+  private isPublishingQuotes = false;
+  private publishTimer?: NodeJS.Timeout;
 
   @WebSocketServer()
   private readonly server!: Server;
 
   constructor(private readonly stocksService: StocksService) {}
+
+  onModuleInit(): void {
+    this.publishTimer = setInterval(() => {
+      void this.publishQuotes();
+    }, this.stocksService.getPollIntervalMs());
+  }
+
+  onModuleDestroy(): void {
+    if (this.publishTimer) {
+      clearInterval(this.publishTimer);
+    }
+  }
 
   handleDisconnect(client: Socket): void {
     this.clientSymbols.delete(client.id);
@@ -41,12 +61,16 @@ export class StocksGateway implements OnGatewayDisconnect {
       .filter(Boolean);
 
     this.clientSymbols.set(client.id, new Set(symbols));
+    void this.publishClientQuotes(client, symbols);
 
     return { symbols };
   }
 
-  @Interval(30000)
   async publishQuotes(): Promise<void> {
+    if (this.isPublishingQuotes) {
+      return;
+    }
+
     const symbols = new Set<string>();
 
     for (const subscribedSymbols of this.clientSymbols.values()) {
@@ -57,16 +81,39 @@ export class StocksGateway implements OnGatewayDisconnect {
       return;
     }
 
+    this.isPublishingQuotes = true;
+
     try {
-      const quotes = await Promise.all(
-        [...symbols].map((symbol) => this.stocksService.getQuote(symbol)),
-      );
+      const quotes = await this.loadQuotes(symbols);
 
       this.server.emit("quotes", quotes);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
       this.logger.warn(`Failed to publish stock quotes: ${message}`);
+    } finally {
+      this.isPublishingQuotes = false;
     }
+  }
+
+  private async publishClientQuotes(
+    client: Socket,
+    symbols: string[],
+  ): Promise<void> {
+    try {
+      client.emit("quotes", await this.loadQuotes(symbols));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      this.logger.warn(
+        `Failed to publish initial stock quotes for ${client.id}: ${message}`,
+      );
+    }
+  }
+
+  private async loadQuotes(symbols: Iterable<string>): Promise<StockQuote[]> {
+    return await Promise.all(
+      [...symbols].map((symbol) => this.stocksService.getQuote(symbol)),
+    );
   }
 }

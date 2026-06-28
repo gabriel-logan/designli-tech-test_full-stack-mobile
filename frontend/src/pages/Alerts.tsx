@@ -26,6 +26,7 @@ function Alerts({ navigation }: Props) {
   const alertsQuery = useQuery({
     queryKey: ["alerts"],
     queryFn: getAlerts,
+    refetchInterval: 5000,
   });
 
   const updateAlertMutation = useMutation({

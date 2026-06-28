@@ -1,5 +1,10 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { Interval } from "@nestjs/schedule";
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  type OnModuleDestroy,
+  type OnModuleInit,
+} from "@nestjs/common";
 import { PostgresService } from "src/database/postgres.service";
 import { NotificationsService } from "src/notifications/notifications.service";
 import { StocksService } from "src/stocks/stocks.service";
@@ -7,14 +12,28 @@ import { StocksService } from "src/stocks/stocks.service";
 import type { AlertRecord, StockAlert } from "./alert.types";
 
 @Injectable()
-export class AlertsService {
+export class AlertsService implements OnModuleDestroy, OnModuleInit {
   private readonly logger = new Logger(AlertsService.name);
+  private isProcessingAlerts = false;
+  private processTimer?: NodeJS.Timeout;
 
   constructor(
     private readonly postgresService: PostgresService,
     private readonly stocksService: StocksService,
     private readonly notificationsService: NotificationsService,
   ) {}
+
+  onModuleInit(): void {
+    this.processTimer = setInterval(() => {
+      void this.processActiveAlerts();
+    }, this.stocksService.getPollIntervalMs());
+  }
+
+  onModuleDestroy(): void {
+    if (this.processTimer) {
+      clearInterval(this.processTimer);
+    }
+  }
 
   async create(params: {
     readonly userId: string;
@@ -34,7 +53,20 @@ export class AlertsService {
       ],
     );
 
-    return this.mapAlert(result.rows[0]);
+    const alert = result.rows[0];
+
+    await this.processAlert(alert);
+
+    const [updatedAlert] = await this.postgresService.select<AlertRecord>(
+      `
+        SELECT *
+        FROM stock_alerts
+        WHERE id = $1
+      `,
+      [alert.id],
+    );
+
+    return this.mapAlert(updatedAlert);
   }
 
   async listByUser(userId: string): Promise<StockAlert[]> {
@@ -95,39 +127,55 @@ export class AlertsService {
     }
   }
 
-  @Interval(30000)
   async processActiveAlerts(): Promise<void> {
-    const rows = await this.postgresService.select<AlertRecord>(
-      `
-        SELECT *
-        FROM stock_alerts
-        WHERE active = true
-        ORDER BY created_at ASC
-      `,
-    );
-
-    if (rows.length === 0) {
+    if (this.isProcessingAlerts) {
       return;
     }
 
-    const quotesBySymbol = new Map<string, number>();
+    this.isProcessingAlerts = true;
 
-    for (const alert of rows) {
-      try {
-        const currentPrice =
-          quotesBySymbol.get(alert.symbol) ??
-          (await this.stocksService.getQuote(alert.symbol)).current;
+    try {
+      const rows = await this.postgresService.select<AlertRecord>(
+        `
+          SELECT *
+          FROM stock_alerts
+          WHERE active = true
+          ORDER BY created_at ASC
+        `,
+      );
 
-        quotesBySymbol.set(alert.symbol, currentPrice);
-
-        if (currentPrice >= Number(alert.target_price)) {
-          await this.triggerAlert(alert, currentPrice);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-
-        this.logger.warn(`Failed to process alert ${alert.id}: ${message}`);
+      if (rows.length === 0) {
+        return;
       }
+
+      const quotesBySymbol = new Map<string, number>();
+
+      for (const alert of rows) {
+        await this.processAlert(alert, quotesBySymbol);
+      }
+    } finally {
+      this.isProcessingAlerts = false;
+    }
+  }
+
+  private async processAlert(
+    alert: AlertRecord,
+    quotesBySymbol = new Map<string, number>(),
+  ): Promise<void> {
+    try {
+      const currentPrice =
+        quotesBySymbol.get(alert.symbol) ??
+        (await this.stocksService.getQuote(alert.symbol)).current;
+
+      quotesBySymbol.set(alert.symbol, currentPrice);
+
+      if (currentPrice >= Number(alert.target_price)) {
+        await this.triggerAlert(alert, currentPrice);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      this.logger.warn(`Failed to process alert ${alert.id}: ${message}`);
     }
   }
 
@@ -135,17 +183,22 @@ export class AlertsService {
     alert: AlertRecord,
     currentPrice: number,
   ): Promise<void> {
-    await this.postgresService.update(
+    const result = await this.postgresService.update<AlertRecord>(
       `
         UPDATE stock_alerts
         SET active = false,
             triggered_at = now(),
             last_triggered_price = $2,
             updated_at = now()
-        WHERE id = $1
+        WHERE id = $1 AND active = true
+        RETURNING *
       `,
       [alert.id, currentPrice],
     );
+
+    if (result.rowCount === 0) {
+      return;
+    }
 
     await this.notificationsService.sendStockAlert({
       userId: alert.user_id,

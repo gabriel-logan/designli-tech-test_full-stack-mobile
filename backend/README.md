@@ -25,6 +25,8 @@ Required values:
 
 - `JWT_SECRET`: secret used to sign API tokens.
 - `FINNHUB_API_KEY`: Finnhub API token.
+- `STOCK_PRICE_POLL_INTERVAL_MS`: websocket quote push and alert processing interval. Defaults to `5000`.
+- `FINNHUB_QUOTE_REFRESH_INTERVAL_MS`: Finnhub quote refresh interval used as the live quote anchor. Defaults to `60000`.
 - `FIREBASE_SERVICE_ACCOUNT_PATH`: optional path to the Firebase Admin service account JSON file.
 
 Do not use `frontend/android/app/google-services.json` for the backend. That file
@@ -68,7 +70,7 @@ The API runs at `http://localhost:3000/api`. Swagger is available at
 - `GET /api/stocks`: list stocks by exchange or search query.
 - `GET /api/stocks/summary`: quotes and candles for default symbols.
 - `GET /api/stocks/chart?symbols=AAPL,MSFT`: quotes and candles for symbols.
-- `GET /api/stocks/:symbol/quote`: latest Finnhub quote.
+- `GET /api/stocks/:symbol/quote`: current live quote backed by Finnhub.
 - `GET /api/stocks/:symbol/candles`: candle series for charting.
 - `GET /api/alerts`: list authenticated user's alerts.
 - `POST /api/alerts`: create an alert with `{ "symbol": "AAPL", "targetPrice": 220 }`.
@@ -83,6 +85,12 @@ All endpoints except `auth` require `Authorization: Bearer <token>`.
 ## Real-time Quotes
 
 Socket.IO namespace: `/stocks`.
+
+The gateway sends an initial `quotes` event immediately after subscription and
+then publishes updates every `STOCK_PRICE_POLL_INTERVAL_MS`. Finnhub remains the
+source quote provider, but the backend keeps a bounded in-memory live quote state
+between Finnhub refreshes so prices continue moving during demos and alert
+testing.
 
 Client event:
 
@@ -114,7 +122,4 @@ Server event:
 ```bash
 pnpm lint:fix
 pnpm format
-pnpm build
-pnpm lint
-pnpm test
 ```

@@ -87,6 +87,7 @@ function CreateAlert({ navigation, route }: Props) {
     enabled: isSelectedStockAvailable,
     queryKey: ["stocks", "quote", normalizedSymbol],
     queryFn: () => getStockQuote(normalizedSymbol),
+    refetchInterval: 5000,
   });
 
   const createAlertMutation = useMutation({
