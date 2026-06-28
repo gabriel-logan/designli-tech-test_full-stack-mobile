@@ -19,6 +19,8 @@ export interface AppTheme {
     surfaceMuted: string;
     text: string;
     mutedText: string;
+    negativeSoft: string;
+    positiveSoft: string;
     warning: string;
   };
   dark: boolean;
@@ -41,6 +43,8 @@ export const lightTheme: AppTheme = {
     surfaceMuted: "#eef2f7",
     text: "#111827",
     mutedText: "#4b5563",
+    negativeSoft: "#fee2e2",
+    positiveSoft: "#dcfce7",
     warning: "#b45309",
   },
   dark: false,
@@ -63,6 +67,8 @@ export const darkTheme: AppTheme = {
     surfaceMuted: "#202a35",
     text: "#f9fafb",
     mutedText: "#aeb8c4",
+    negativeSoft: "#3f1723",
+    positiveSoft: "#14351f",
     warning: "#fbbf24",
   },
   dark: true,

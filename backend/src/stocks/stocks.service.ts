@@ -410,26 +410,38 @@ export class StocksService {
     const currentPrice = Math.max(quote.current, 1);
     const previousClose =
       quote.previousClose > 0 ? quote.previousClose : currentPrice;
+    const trendDirection = seed % 2 === 0 ? 1 : -1;
+    const trendPercent = trendDirection * (0.035 + (seed % 9) * 0.006);
+    const startPrice = Math.max(currentPrice * (1 - trendPercent), 1);
+    const amplitude = currentPrice * (0.018 + (seed % 11) * 0.0035);
+    const secondaryAmplitude = amplitude * (0.35 + (seed % 5) * 0.08);
+
+    let previousCloseValue = previousClose;
 
     return Array.from({ length: pointCount }, (_, index) => {
       const progress = pointCount > 1 ? index / (pointCount - 1) : 1;
       const timestamp = startTimestamp + index * interval;
-      const trendPrice =
-        previousClose + (currentPrice - previousClose) * progress;
+      const trendPrice = startPrice + (currentPrice - startPrice) * progress;
       const wave =
-        Math.sin(index * 0.75 + seed) * currentPrice * 0.008 +
-        Math.sin(index * 0.21 + seed) * currentPrice * 0.004;
+        Math.sin(index * 0.72 + seed * 0.17) * amplitude +
+        Math.sin(index * 1.37 + seed * 0.07) * secondaryAmplitude;
+      const pulse = ((seed * (index + 11)) % 17) / 16 - 0.5;
       const close = this.roundPrice(
         index === pointCount - 1
           ? currentPrice
-          : Math.max(trendPrice + wave, 1),
+          : Math.max(trendPrice + wave + pulse * amplitude * 0.42, 1),
       );
-      const open =
-        index === 0
-          ? this.roundPrice(previousClose)
-          : this.roundPrice(trendPrice + wave * 0.55);
+      const open = this.roundPrice(
+        Math.max(
+          index === 0
+            ? previousCloseValue
+            : previousCloseValue +
+                Math.sin(index * 0.91 + seed) * amplitude * 0.18,
+          1,
+        ),
+      );
       const spread = Math.max(
-        currentPrice * (0.004 + (seed % 7) * 0.0005),
+        currentPrice * (0.009 + (seed % 7) * 0.0012 + Math.abs(pulse) * 0.006),
         0.01,
       );
       const high = this.roundPrice(Math.max(open, close) + spread);
@@ -439,6 +451,8 @@ export class StocksService {
       const volume = Math.round(
         750000 + ((seed * (index + 3)) % 950000) + index * 12000,
       );
+
+      previousCloseValue = close;
 
       return {
         close,
