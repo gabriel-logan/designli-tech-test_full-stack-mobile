@@ -1,3 +1,28 @@
 {
-  "Home": "Home"
+  "alerts": {
+    "create": "Create alert",
+    "title": "Price alerts"
+  },
+  "auth": {
+    "login": "Login"
+  },
+  "home": {
+    "title": "Stocks dashboard",
+    "viewStocks": "View stocks"
+  },
+  "notFound": {
+    "goHome": "Go home",
+    "headerTitle": "Not found",
+    "title": "Screen not found"
+  },
+  "stocks": {
+    "openSymbol": "Open {{symbol}}",
+    "selectStock": "Select a stock",
+    "title": "Stocks"
+  },
+  "tabs": {
+    "alerts": "Alerts",
+    "home": "Home",
+    "stocks": "Stocks"
+  }
 }
