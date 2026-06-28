@@ -25,22 +25,15 @@ Required values:
 
 - `JWT_SECRET`: secret used to sign API tokens.
 - `FINNHUB_API_KEY`: Finnhub API token.
-- `FIREBASE_SERVICE_ACCOUNT_JSON`: optional Firebase Admin service account JSON string.
 - `FIREBASE_SERVICE_ACCOUNT_PATH`: optional path to the Firebase Admin service account JSON file.
 
 Do not use `frontend/android/app/google-services.json` for the backend. That file
 is Android client configuration. For push notifications from the backend, create
 a Firebase Admin SDK private key in Firebase Console > Project settings >
-Service accounts > Generate new private key, then set either:
+Service accounts > Generate new private key, then set:
 
 ```bash
 FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/firebase-service-account.json
-```
-
-or paste the file contents as one JSON string into:
-
-```bash
-FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
 ```
 
 ## Database

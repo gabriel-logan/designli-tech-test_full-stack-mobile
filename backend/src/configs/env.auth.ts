@@ -7,7 +7,7 @@ export interface EnvAuthConfig {
 
 export default function envAuth(): EnvAuthConfig {
   const jwtSecret = process.env.JWT_SECRET;
-  const jwtExpiresIn = process.env.JWT_EXPIRES_IN ?? "7d";
+  const jwtExpiresIn = process.env.JWT_EXPIRES_IN ?? "1d";
 
   if (!jwtSecret) {
     throw new Error("Missing required environment variable: JWT_SECRET");

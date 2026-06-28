@@ -29,41 +29,24 @@ export class NotificationsService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    const serviceAccountJson = this.getServiceAccountJson();
-
-    if (!serviceAccountJson) {
-      this.logger.warn("Firebase credentials not configured. Push disabled.");
-
-      return;
-    }
-
-    const serviceAccount = JSON.parse(serviceAccountJson) as ServiceAccount;
-    const app =
-      getApps()[0] ?? initializeApp({ credential: cert(serviceAccount) });
-
-    this.messaging = getMessaging(app);
-  }
-
-  private getServiceAccountJson(): string | null {
-    const serviceAccountJson = this.configService.get(
-      "firebase.serviceAccountJson",
-      { infer: true },
-    );
-
-    if (serviceAccountJson) {
-      return serviceAccountJson;
-    }
-
     const serviceAccountPath = this.configService.get(
       "firebase.serviceAccountPath",
       { infer: true },
     );
 
     if (!serviceAccountPath) {
-      return null;
+      this.logger.warn("Firebase credentials not configured. Push disabled.");
+
+      return;
     }
 
-    return readFileSync(serviceAccountPath, "utf8");
+    const serviceAccount = JSON.parse(
+      readFileSync(serviceAccountPath, "utf8"),
+    ) as ServiceAccount;
+    const app =
+      getApps()[0] ?? initializeApp({ credential: cert(serviceAccount) });
+
+    this.messaging = getMessaging(app);
   }
 
   async sendStockAlert(params: StockAlertNotification): Promise<void> {

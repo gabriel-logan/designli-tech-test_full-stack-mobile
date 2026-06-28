@@ -1,8 +1,6 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
-import type { EnvAuthConfig } from "src/configs/env.auth";
 import type { PublicUser, UserRecord } from "src/users/user.types";
 import { UsersService } from "src/users/users.service";
 
@@ -16,7 +14,6 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService<EnvAuthConfig, true>,
   ) {}
 
   async register(params: {
@@ -69,18 +66,10 @@ export class AuthService {
   private async signToken(
     user: Pick<UserRecord, "id" | "email" | "name">,
   ): Promise<string> {
-    return await this.jwtService.signAsync(
-      {
-        sub: user.id,
-        email: user.email,
-        name: user.name,
-      },
-      {
-        secret: this.configService.get("auth.jwtSecret", { infer: true }),
-        expiresIn: this.configService.get("auth.jwtExpiresIn", {
-          infer: true,
-        }),
-      },
-    );
+    return await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+    });
   }
 }
