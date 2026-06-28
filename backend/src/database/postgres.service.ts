@@ -26,7 +26,7 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService<EnvDatabaseConfig, true>,
   ) {}
 
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
     const database = this.configService.get("database.postgres", {
       infer: true,
     });
@@ -45,6 +45,8 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
     this.pool.on("error", (error) => {
       this.logger.error("Unexpected PostgreSQL pool error", error.stack);
     });
+
+    await this.verifyPostgresConnection();
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -150,6 +152,51 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
     this.logger.warn("Using global pool connection (NO ALS)");
 
     return this.pool;
+  }
+
+  private async verifyPostgresConnection(): Promise<void> {
+    const postgresMaxConnectionRetries = 3;
+    const postgresConnectionRetryDelayMs = 1000;
+
+    for (
+      let postgresConnectionAttempt = 1;
+      postgresConnectionAttempt <= postgresMaxConnectionRetries;
+      postgresConnectionAttempt += 1
+    ) {
+      try {
+        const connection = await this.getConnection();
+
+        try {
+          await connection.query("SELECT 1");
+
+          this.logger.log("PostgreSQL connection established successfully");
+
+          return;
+        } finally {
+          connection.release();
+        }
+      } catch (error) {
+        const isLastAttempt =
+          postgresConnectionAttempt === postgresMaxConnectionRetries;
+        const postgresConnectionError =
+          error instanceof Error ? error.message : String(error);
+
+        this.logger.error(
+          `PostgreSQL connection attempt ${postgresConnectionAttempt}/${postgresMaxConnectionRetries} failed`,
+          postgresConnectionError,
+        );
+
+        if (isLastAttempt) {
+          throw error;
+        }
+
+        await this.sleep(postgresConnectionRetryDelayMs);
+      }
+    }
+  }
+
+  private async sleep(milliseconds: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 
   private async query<
