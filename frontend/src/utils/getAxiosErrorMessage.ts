@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import type { ApiErrorResponse } from "../types";
+import type { ApiErrorResponse } from "../types/api";
 
 export default function getAxiosErrorMessage(
   error: unknown,

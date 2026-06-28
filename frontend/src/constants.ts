@@ -7,3 +7,5 @@ export const resources = {
     translation: en,
   },
 } as const;
+
+export const apiBaseUrl = "http://localhost:3000/api";

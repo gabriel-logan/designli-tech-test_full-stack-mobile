@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { userStorageKey } from "../constants";
-import type { Locale } from "../types";
+import type { Locale } from "../types/locale";
 
 function safeLocale(locale: string): Locale {
   return locale.split("-")[0] as Locale;
