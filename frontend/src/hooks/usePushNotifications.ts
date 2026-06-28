@@ -12,6 +12,7 @@ import { PermissionsAndroid, Platform } from "react-native";
 import {
   displayStockAlertNotification,
   ensureStockAlertNotificationChannel,
+  playStockAlertAudio,
 } from "../lib/pushNotifications";
 import { registerDevice } from "../services/mutations/devices";
 import { useAuthStore } from "../stores/authStore";
@@ -57,6 +58,7 @@ export function usePushNotifications() {
     const unsubscribeForegroundMessages = onMessage(
       messagingInstance,
       async message => {
+        playStockAlertAudio();
         await displayStockAlertNotification(message);
       },
     );

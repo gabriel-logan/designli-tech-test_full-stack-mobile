@@ -201,8 +201,8 @@ export class StocksService {
         to: String(params.to ?? now),
       });
     } catch (error) {
-      this.logger.warn(
-        `Failed to load candles for ${symbol}: ${this.getErrorMessage(error)}`,
+      this.logger.debug(
+        `Candles unavailable for ${symbol}: ${this.getErrorMessage(error)}`,
       );
 
       return [];
@@ -372,8 +372,17 @@ export class StocksService {
       return response.data;
     } catch (error) {
       if (error instanceof AxiosError) {
+        const status = error.response?.status ?? "unknown";
+        const message = `Finnhub ${path} request failed with status ${status}`;
+
+        if (path === "stock/candle" && status === 403) {
+          this.logger.debug(message);
+        } else {
+          this.logger.warn(message);
+        }
+      } else {
         this.logger.warn(
-          `Finnhub ${path} request failed with status ${error.response?.status ?? "unknown"}`,
+          `Finnhub ${path} request failed: ${this.getErrorMessage(error)}`,
         );
       }
 

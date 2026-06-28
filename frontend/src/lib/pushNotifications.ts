@@ -7,9 +7,18 @@ import { getApp } from "@react-native-firebase/app";
 import {
   getMessaging,
   type RemoteMessage,
+  setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
+import Sound from "react-native-sound";
+
+import notifySoundFile from "../assets/audios/notify.mp3";
 
 export const stockAlertChannelId = "stock_alerts";
+
+let notificationSound: Sound | null = null;
+let notificationSoundLoadFailed = false;
+
+Sound.setCategory("Playback");
 
 function getNotificationContent(message: RemoteMessage) {
   const symbol = message.data?.symbol;
@@ -65,6 +74,39 @@ export async function displayStockAlertNotification(message: RemoteMessage) {
   });
 }
 
+export function playStockAlertAudio() {
+  if (notificationSoundLoadFailed) {
+    return;
+  }
+
+  if (!notificationSound) {
+    notificationSound = new Sound(notifySoundFile, error => {
+      if (error) {
+        notificationSoundLoadFailed = true;
+        console.warn("Could not load stock alert audio", error);
+
+        return;
+      }
+
+      playStockAlertAudio();
+    });
+
+    return;
+  }
+
+  if (!notificationSound.isLoaded()) {
+    return;
+  }
+
+  notificationSound.stop(() => {
+    notificationSound?.play(success => {
+      if (!success) {
+        console.warn("Could not play stock alert audio");
+      }
+    });
+  });
+}
+
 export async function handleBackgroundStockAlert(message: RemoteMessage) {
   await ensureStockAlertNotificationChannel();
 
@@ -76,5 +118,5 @@ export async function handleBackgroundStockAlert(message: RemoteMessage) {
 export function registerBackgroundPushHandler() {
   const messagingInstance = getMessaging(getApp());
 
-  messagingInstance.setBackgroundMessageHandler(handleBackgroundStockAlert);
+  setBackgroundMessageHandler(messagingInstance, handleBackgroundStockAlert);
 }
