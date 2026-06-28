@@ -5,10 +5,10 @@ import { IsIn, IsInt, IsOptional } from "class-validator";
 const resolutions = ["1", "5", "15", "30", "60", "D", "W", "M"] as const;
 
 export class StockCandlesQueryDto {
-  @ApiPropertyOptional({ example: "D" })
+  @ApiPropertyOptional({ enum: resolutions, example: "D", type: String })
   @IsOptional()
   @IsIn(resolutions)
-  public resolution?: (typeof resolutions)[number];
+  public resolution?: string;
 
   @ApiPropertyOptional({ example: 1719532800 })
   @IsOptional()

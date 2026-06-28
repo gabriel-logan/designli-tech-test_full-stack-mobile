@@ -3,12 +3,19 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { CurrentUser } from "src/auth/current-user.decorator";
 import type { AuthenticatedUser } from "src/auth/jwt-auth.guard";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
@@ -16,6 +23,7 @@ import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
 import type { StockAlert } from "./alert.types";
 import { AlertsService } from "./alerts.service";
 import { CreateAlertDto } from "./dto/create-alert.dto";
+import { StockAlertDto } from "./dto/stock-alert-response.dto";
 import { UpdateAlertDto } from "./dto/update-alert.dto";
 
 @ApiTags("alerts")
@@ -25,11 +33,13 @@ import { UpdateAlertDto } from "./dto/update-alert.dto";
 export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 
+  @ApiOkResponse({ type: [StockAlertDto] })
   @Get()
   async list(@CurrentUser() user: AuthenticatedUser): Promise<StockAlert[]> {
     return await this.alertsService.listByUser(user.sub);
   }
 
+  @ApiOkResponse({ type: StockAlertDto })
   @Post()
   async create(
     @CurrentUser() user: AuthenticatedUser,
@@ -42,6 +52,7 @@ export class AlertsController {
     });
   }
 
+  @ApiOkResponse({ type: StockAlertDto })
   @Patch(":id")
   async update(
     @CurrentUser() user: AuthenticatedUser,
@@ -55,6 +66,8 @@ export class AlertsController {
     });
   }
 
+  @ApiNoContentResponse()
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(":id")
   async delete(
     @CurrentUser() user: AuthenticatedUser,
