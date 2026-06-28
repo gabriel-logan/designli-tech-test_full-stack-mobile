@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAppTheme } from "../hooks/useAppTheme";
 import Alerts from "../pages/Alerts";
 import Home from "../pages/Home";
+import Settings from "../pages/Settings";
 import Stocks from "../pages/Stocks";
 import type { HomeTabParamList } from "../types/navigation";
 
@@ -31,6 +32,10 @@ function StocksTabIcon({ color, size }: TabIconProps) {
 
 function AlertsTabIcon({ color, size }: TabIconProps) {
   return <MaterialDesignIcon color={color} name="bell-outline" size={size} />;
+}
+
+function SettingsTabIcon({ color, size }: TabIconProps) {
+  return <MaterialDesignIcon color={color} name="cog-outline" size={size} />;
 }
 
 function HomeTabRoutes() {
@@ -71,6 +76,14 @@ function HomeTabRoutes() {
         options={{
           tabBarIcon: AlertsTabIcon,
           title: t("tabs.alerts"),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={Settings}
+        options={{
+          tabBarIcon: SettingsTabIcon,
+          title: t("tabs.settings"),
         }}
       />
     </Tab.Navigator>

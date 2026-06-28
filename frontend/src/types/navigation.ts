@@ -20,6 +20,7 @@ export type HomeTabParamList = {
   Dashboard: undefined;
   Stocks: undefined;
   Alerts: undefined;
+  Settings: undefined;
 };
 
 export type HomeTabScreenProps<T extends keyof HomeTabParamList> =

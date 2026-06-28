@@ -1,5 +1,5 @@
 import MaterialDesignIcon from "@react-native-vector-icons/material-design-icons";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
@@ -25,10 +25,8 @@ function Home({ navigation }: Props) {
   const theme = useAppTheme();
   const styles = createStyles(theme);
 
-  const queryClient = useQueryClient();
-
   const authUser = useAuthStore(state => state.authUser);
-  const logout = useAuthStore(state => state.logout);
+  const userName = authUser?.name?.trim() || t("home.defaultUserName");
 
   const summaryQuery = useQuery({
     queryKey: ["stocks", "summary"],
@@ -54,34 +52,16 @@ function Home({ navigation }: Props) {
     undefined as (typeof quotes)[number] | undefined,
   );
 
-  async function signOut() {
-    await logout();
-    queryClient.clear();
-  }
-
   return (
     <Screen>
       <View style={styles.hero}>
         <View style={styles.heroCopy}>
           <Text style={styles.kicker}>
-            {t("home.welcome", { name: authUser?.name })}
+            {t("home.welcome", { name: userName })}
           </Text>
           <Text style={styles.title}>{t("home.title")}</Text>
           <Text style={styles.subtitle}>{t("home.subtitle")}</Text>
         </View>
-        <AppButton
-          icon={
-            <MaterialDesignIcon
-              color={theme.colors.primary}
-              name="logout"
-              size={17}
-            />
-          }
-          onPress={signOut}
-          size="small"
-          title={t("auth.logout")}
-          variant="secondary"
-        />
       </View>
 
       <View style={styles.statusCard}>

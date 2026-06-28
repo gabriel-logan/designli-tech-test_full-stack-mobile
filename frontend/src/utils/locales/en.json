@@ -69,6 +69,7 @@
   },
   "home": {
     "avgChange": "Avg change",
+    "defaultUserName": "there",
     "marketOverview": "Market overview",
     "marketSubtitle": "Default symbols with quote and candle data from the backend.",
     "socketDescription": "Live quotes refresh through the Socket.IO stock namespace.",
@@ -122,9 +123,26 @@
     "volume": "Volume",
     "waitingQuotes": "Waiting for the next quote update..."
   },
+  "settings": {
+    "account": "Account",
+    "accountSubtitle": "End the current session on this device.",
+    "darkTheme": "Dark",
+    "language": "Language",
+    "languageSubtitle": "Choose from the languages available in this app.",
+    "lightTheme": "Light",
+    "locales": {
+      "en": "English"
+    },
+    "subtitle": "Manage appearance, language, and your session.",
+    "systemTheme": "System",
+    "theme": "Theme",
+    "themeSubtitle": "Use the system setting or choose a fixed theme.",
+    "title": "Settings"
+  },
   "tabs": {
     "alerts": "Alerts",
     "home": "Home",
+    "settings": "Settings",
     "stocks": "Stocks"
   }
 }
