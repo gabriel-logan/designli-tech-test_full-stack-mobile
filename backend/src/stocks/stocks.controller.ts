@@ -35,9 +35,7 @@ export class StocksController {
   @ApiOkResponse({ type: [StockChartItemDto] })
   @Get("summary")
   async summary(): Promise<StockChartItem[]> {
-    return await this.stocksService.getChart(
-      this.stocksService.getDefaultSymbols(),
-    );
+    return await this.stocksService.getChart(this.stocksService.defaultSymbols);
   }
 
   @ApiOkResponse({ type: [StockChartItemDto] })

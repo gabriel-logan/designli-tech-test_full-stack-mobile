@@ -21,10 +21,16 @@ export interface AuthenticatedRequest extends Request {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  private readonly jwtSecret: string;
+
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService<EnvAuthConfig, true>,
-  ) {}
+    configService: ConfigService<EnvAuthConfig, true>,
+  ) {
+    const auth = configService.get("auth", { infer: true });
+
+    this.jwtSecret = auth.jwtSecret;
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
@@ -35,12 +41,10 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const auth = this.configService.get("auth", { infer: true });
-
       request.user = await this.jwtService.verifyAsync<AuthenticatedUser>(
         token,
         {
-          secret: auth.jwtSecret,
+          secret: this.jwtSecret,
         },
       );
 

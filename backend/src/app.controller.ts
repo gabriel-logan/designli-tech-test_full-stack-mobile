@@ -3,7 +3,7 @@ import { Controller, Get } from "@nestjs/common";
 @Controller()
 export class AppController {
   @Get("health")
-  getHello(): string {
-    return "Hello World!";
+  health(): { readonly status: "ok" } {
+    return { status: "ok" };
   }
 }

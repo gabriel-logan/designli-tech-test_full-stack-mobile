@@ -1,9 +1,12 @@
+import { HttpService } from "@nestjs/axios";
 import {
   Injectable,
   Logger,
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { AxiosError } from "axios";
+import { firstValueFrom } from "rxjs";
 import type { EnvFinnhubConfig } from "src/configs/env.finnhub";
 
 import type {
@@ -60,13 +63,26 @@ interface LiveQuoteState {
 @Injectable()
 export class StocksService {
   private readonly logger = new Logger(StocksService.name);
+  public readonly defaultSymbols: string[];
+  public readonly pricePollIntervalMs: number;
+
+  private readonly apiKey: string;
   private readonly baseUrl = "https://finnhub.io/api/v1";
   private readonly quoteStates = new Map<string, LiveQuoteState>();
   private readonly quoteRequests = new Map<string, Promise<StockQuote>>();
+  private readonly quoteRefreshIntervalMs: number;
 
   constructor(
-    private readonly configService: ConfigService<EnvFinnhubConfig, true>,
-  ) {}
+    configService: ConfigService<EnvFinnhubConfig, true>,
+    private readonly httpService: HttpService,
+  ) {
+    const finnhub = configService.get("finnhub", { infer: true });
+
+    this.apiKey = finnhub.apiKey;
+    this.defaultSymbols = finnhub.defaultSymbols;
+    this.pricePollIntervalMs = finnhub.pricePollIntervalMs;
+    this.quoteRefreshIntervalMs = finnhub.quoteRefreshIntervalMs;
+  }
 
   async list(params: {
     readonly exchange?: string;
@@ -100,7 +116,7 @@ export class StocksService {
     const cachedState = this.quoteStates.get(normalizedSymbol);
     const shouldRefresh =
       !cachedState ||
-      now - cachedState.lastFetchedAt >= this.getQuoteRefreshIntervalMs();
+      now - cachedState.lastFetchedAt >= this.quoteRefreshIntervalMs;
 
     if (shouldRefresh) {
       try {
@@ -215,24 +231,6 @@ export class StocksService {
     );
 
     return chartItems.filter((item): item is StockChartItem => item !== null);
-  }
-
-  getDefaultSymbols(): string[] {
-    const finnhub = this.configService.get("finnhub", { infer: true });
-
-    return finnhub.defaultSymbols;
-  }
-
-  getPollIntervalMs(): number {
-    const finnhub = this.configService.get("finnhub", { infer: true });
-
-    return finnhub.pricePollIntervalMs;
-  }
-
-  getQuoteRefreshIntervalMs(): number {
-    const finnhub = this.configService.get("finnhub", { infer: true });
-
-    return finnhub.quoteRefreshIntervalMs;
   }
 
   normalizeSymbol(symbol: string): string {
@@ -361,22 +359,25 @@ export class StocksService {
     query: Record<string, string | undefined>,
   ): Promise<T> {
     const url = new URL(`${this.baseUrl}/${path}`);
-    const finnhub = this.configService.get("finnhub", { infer: true });
 
-    Object.entries({ ...query, token: finnhub.apiKey }).forEach(
-      ([key, value]) => {
-        if (value) {
-          url.searchParams.set(key, value);
-        }
-      },
-    );
+    Object.entries({ ...query, token: this.apiKey }).forEach(([key, value]) => {
+      if (value) {
+        url.searchParams.set(key, value);
+      }
+    });
 
-    const response = await fetch(url);
+    try {
+      const response = await firstValueFrom(this.httpService.get<T>(url.href));
 
-    if (!response.ok) {
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        this.logger.warn(
+          `Finnhub ${path} request failed with status ${error.response?.status ?? "unknown"}`,
+        );
+      }
+
       throw new ServiceUnavailableException("Finnhub request failed");
     }
-
-    return (await response.json()) as T;
   }
 }

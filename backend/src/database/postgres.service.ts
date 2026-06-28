@@ -53,10 +53,6 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
     await this.pool.end();
   }
 
-  getPool(): Pool {
-    return this.pool;
-  }
-
   async getConnection(): Promise<PoolClient> {
     return await this.pool.connect();
   }

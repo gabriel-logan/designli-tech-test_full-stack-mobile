@@ -38,7 +38,7 @@ export class StocksGateway
   onModuleInit(): void {
     this.publishTimer = setInterval(() => {
       void this.publishQuotes();
-    }, this.stocksService.getPollIntervalMs());
+    }, this.stocksService.pricePollIntervalMs);
   }
 
   onModuleDestroy(): void {
@@ -56,7 +56,7 @@ export class StocksGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: { readonly symbols?: string[] },
   ): { readonly symbols: string[] } {
-    const symbols = (payload.symbols ?? this.stocksService.getDefaultSymbols())
+    const symbols = (payload.symbols ?? this.stocksService.defaultSymbols)
       .map((symbol) => this.stocksService.normalizeSymbol(symbol))
       .filter(Boolean);
 

@@ -26,7 +26,7 @@ export class AlertsService implements OnModuleDestroy, OnModuleInit {
   onModuleInit(): void {
     this.processTimer = setInterval(() => {
       void this.processActiveAlerts();
-    }, this.stocksService.getPollIntervalMs());
+    }, this.stocksService.pricePollIntervalMs);
   }
 
   onModuleDestroy(): void {
