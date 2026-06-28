@@ -9,7 +9,7 @@ import { AsyncLocalStorage } from "async_hooks";
 import type { PoolClient, QueryResult, QueryResultRow } from "pg";
 import { Pool } from "pg";
 
-import type { EnvGlobalConfig } from "../configs/env.global";
+import type { EnvDatabaseConfig } from "../configs/env.database";
 
 type QueryParams = readonly unknown[];
 type QueryConnection = Pool | PoolClient;
@@ -20,14 +20,16 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
 
   private readonly asyncLocalStorage = new AsyncLocalStorage<PoolClient>();
 
-  private pool: Pool;
+  private pool!: Pool;
 
   constructor(
-    private readonly configService: ConfigService<EnvGlobalConfig, true>,
+    private readonly configService: ConfigService<EnvDatabaseConfig, true>,
   ) {}
 
   onModuleInit(): void {
-    const database = this.configService.get("database", { infer: true });
+    const database = this.configService.get("database.postgres", {
+      infer: true,
+    });
 
     this.pool = new Pool({
       host: database.host,
