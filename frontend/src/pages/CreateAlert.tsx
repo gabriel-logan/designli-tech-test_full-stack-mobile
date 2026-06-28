@@ -1,3 +1,4 @@
+import { Picker } from "@react-native-picker/picker";
 import MaterialDesignIcon from "@react-native-vector-icons/material-design-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isDecimal, isEmpty, isNumber } from "multiform-validator";
@@ -11,8 +12,9 @@ import ErrorState from "../components/ui/ErrorState";
 import Screen from "../components/ui/Screen";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { createAlert } from "../services/mutations/alerts";
-import { getStockQuote } from "../services/queries/stocks";
+import { getStockQuote, getStocks } from "../services/queries/stocks";
 import type { AppTheme } from "../styles/theme";
+import type { StockSymbol } from "../types/api";
 import type { RootStackScreenProps } from "../types/navigation";
 import { formatCurrency } from "../utils/formatters";
 import getAxiosErrorMessage from "../utils/getAxiosErrorMessage";
@@ -22,6 +24,22 @@ type Props = RootStackScreenProps<"CreateAlert">;
 interface FieldErrors {
   symbol?: string;
   targetPrice?: string;
+}
+
+function getUniqueStockOptions(stocks: StockSymbol[]) {
+  const symbols = new Set<string>();
+
+  return stocks.filter(stock => {
+    const symbol = stock.symbol.trim().toUpperCase();
+
+    if (!symbol || symbols.has(symbol)) {
+      return false;
+    }
+
+    symbols.add(symbol);
+
+    return true;
+  });
 }
 
 function CreateAlert({ navigation, route }: Props) {
@@ -37,8 +55,36 @@ function CreateAlert({ navigation, route }: Props) {
   const [requestError, setRequestError] = useState("");
 
   const normalizedSymbol = symbol.trim().toUpperCase();
+  const routeSymbol = route.params?.symbol?.trim().toUpperCase();
+  const stocksQuery = useQuery({
+    queryKey: ["stocks", "alert-options"],
+    queryFn: () =>
+      getStocks({
+        exchange: "US",
+        limit: 100,
+      }),
+  });
+  const routeStockQuery = useQuery({
+    enabled: !!routeSymbol,
+    queryKey: ["stocks", "alert-options", routeSymbol],
+    queryFn: () =>
+      getStocks({
+        limit: 20,
+        query: routeSymbol,
+      }),
+  });
+  const stockOptions = getUniqueStockOptions([
+    ...(routeStockQuery.data ?? []),
+    ...(stocksQuery.data ?? []),
+  ]);
+  const hasStockOptions = stockOptions.length > 0;
+  const isLoadingStocks = stocksQuery.isLoading || routeStockQuery.isLoading;
+  const isSelectedStockAvailable = stockOptions.some(
+    stock => stock.symbol.trim().toUpperCase() === normalizedSymbol,
+  );
+
   const quoteQuery = useQuery({
-    enabled: normalizedSymbol.length > 0,
+    enabled: isSelectedStockAvailable,
     queryKey: ["stocks", "quote", normalizedSymbol],
     queryFn: () => getStockQuote(normalizedSymbol),
   });
@@ -67,6 +113,8 @@ function CreateAlert({ navigation, route }: Props) {
 
     if (isEmpty(normalizedSymbol)) {
       nextErrors.symbol = t("alerts.symbolError");
+    } else if (!isSelectedStockAvailable) {
+      nextErrors.symbol = t("alerts.symbolUnavailable");
     }
 
     if (
@@ -95,6 +143,14 @@ function CreateAlert({ navigation, route }: Props) {
     });
   }
 
+  function selectSymbol(value: string) {
+    setSymbol(value);
+    setErrors(currentErrors => ({
+      ...currentErrors,
+      symbol: undefined,
+    }));
+  }
+
   return (
     <Screen>
       <View style={styles.header}>
@@ -103,14 +159,51 @@ function CreateAlert({ navigation, route }: Props) {
       </View>
 
       <View style={styles.form}>
-        <AppTextInput
-          autoCapitalize="characters"
-          error={errors.symbol}
-          label={t("alerts.symbol")}
-          onChangeText={setSymbol}
-          placeholder={t("alerts.symbolPlaceholder")}
-          value={symbol}
-        />
+        <View style={styles.field}>
+          <Text style={styles.label}>{t("alerts.symbol")}</Text>
+          <View
+            style={[
+              styles.pickerContainer,
+              errors.symbol ? styles.pickerError : null,
+            ]}
+          >
+            <Picker
+              dropdownIconColor={theme.colors.text}
+              enabled={!isLoadingStocks && hasStockOptions}
+              onValueChange={selectSymbol}
+              selectedValue={isSelectedStockAvailable ? normalizedSymbol : ""}
+              style={styles.picker}
+            >
+              <Picker.Item
+                color={theme.colors.mutedText}
+                label={t("alerts.symbolPlaceholder")}
+                value=""
+              />
+              {stockOptions.map(stock => (
+                <Picker.Item
+                  key={stock.symbol}
+                  label={`${stock.displaySymbol} - ${stock.description}`}
+                  value={stock.symbol.trim().toUpperCase()}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          {isLoadingStocks && (
+            <Text style={styles.helperText}>{t("alerts.loadingStocks")}</Text>
+          )}
+          {!isLoadingStocks && !hasStockOptions && (
+            <Text style={styles.errorText}>
+              {t("alerts.noStocksAvailable")}
+            </Text>
+          )}
+          {!!errors.symbol && (
+            <Text style={styles.errorText}>{errors.symbol}</Text>
+          )}
+          {(stocksQuery.isError || routeStockQuery.isError) && (
+            <Text style={styles.errorText}>{t("alerts.loadStocksError")}</Text>
+          )}
+        </View>
 
         <AppTextInput
           error={errors.targetPrice}
@@ -150,6 +243,7 @@ function CreateAlert({ navigation, route }: Props) {
               size={18}
             />
           }
+          disabled={!hasStockOptions || isLoadingStocks}
           loading={createAlertMutation.isPending}
           onPress={submit}
           title={t("alerts.save")}
@@ -169,9 +263,40 @@ const createStyles = (theme: AppTheme) =>
       gap: 16,
       padding: 16,
     },
+    errorText: {
+      color: theme.colors.danger,
+      fontSize: 13,
+    },
+    field: {
+      gap: 7,
+    },
+    helperText: {
+      color: theme.colors.mutedText,
+      fontSize: 13,
+    },
     header: {
       gap: 6,
       paddingTop: 10,
+    },
+    label: {
+      color: theme.colors.text,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+    picker: {
+      color: theme.colors.text,
+    },
+    pickerContainer: {
+      backgroundColor: theme.colors.field,
+      borderColor: theme.colors.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      justifyContent: "center",
+      minHeight: 48,
+      overflow: "hidden",
+    },
+    pickerError: {
+      borderColor: theme.colors.danger,
     },
     quoteContext: {
       alignItems: "center",

@@ -21,7 +21,7 @@ function RootStackRoutes() {
   if (!hasHydrated) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator />
+        <ActivityIndicator size="large" />
       </View>
     );
   }
