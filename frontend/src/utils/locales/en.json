@@ -6,6 +6,10 @@
   "auth": {
     "login": "Login"
   },
+  "common": {
+    "loading": "Loading...",
+    "requestError": "Could not load data"
+  },
   "home": {
     "title": "Stocks dashboard",
     "viewStocks": "View stocks"
@@ -17,7 +21,12 @@
   },
   "stocks": {
     "openSymbol": "Open {{symbol}}",
+    "queryExample": "React Query example",
+    "refresh": "Refresh",
     "selectStock": "Select a stock",
+    "socketConnected": "Socket connected",
+    "socketDisconnected": "Socket disconnected",
+    "socketExample": "Socket.IO example",
     "title": "Stocks"
   },
   "tabs": {

@@ -115,4 +115,12 @@ export interface RegisterDeviceRequest {
   platform?: string;
 }
 
+export interface SubscribeStocksRequest {
+  symbols?: string[];
+}
+
+export interface SubscribeStocksResponse {
+  symbols: string[];
+}
+
 export type HealthResponse = string;

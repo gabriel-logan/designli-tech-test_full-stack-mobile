@@ -9,3 +9,5 @@ export const resources = {
 } as const;
 
 export const apiBaseUrl = "http://localhost:3000/api";
+
+export const socketBaseUrl = "http://localhost:3000";
