@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   StatusBar,
   StyleSheet,
@@ -19,9 +20,11 @@ function App() {
 }
 
 function AppContent() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      <Text>{t("Home")}</Text>
     </View>
   );
 }
