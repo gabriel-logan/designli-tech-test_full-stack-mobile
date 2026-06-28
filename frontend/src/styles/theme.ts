@@ -7,36 +7,63 @@ export interface AppTheme {
     background: string;
     border: string;
     card: string;
+    danger: string;
+    field: string;
+    negative: string;
     notification: string;
+    positive: string;
     primary: string;
+    primarySoft: string;
+    shadow: string;
+    surface: string;
+    surfaceMuted: string;
     text: string;
     mutedText: string;
+    warning: string;
   };
   dark: boolean;
 }
 
 export const lightTheme: AppTheme = {
   colors: {
-    background: "#fff",
-    border: "#e5e7eb",
-    card: "#fff",
+    background: "#f6f7f9",
+    border: "#d7dce3",
+    card: "#ffffff",
+    danger: "#dc2626",
+    field: "#ffffff",
+    negative: "#dc2626",
     notification: "#ef4444",
-    primary: "#2563eb",
+    positive: "#16803c",
+    primary: "#155eef",
+    primarySoft: "#e8efff",
+    shadow: "#0f172a",
+    surface: "#ffffff",
+    surfaceMuted: "#eef2f7",
     text: "#111827",
     mutedText: "#4b5563",
+    warning: "#b45309",
   },
   dark: false,
 };
 
 export const darkTheme: AppTheme = {
   colors: {
-    background: "#111827",
-    border: "#374151",
-    card: "#1f2937",
+    background: "#101418",
+    border: "#303946",
+    card: "#171d24",
+    danger: "#fb7185",
+    field: "#1d2630",
+    negative: "#fb7185",
     notification: "#f87171",
-    primary: "#60a5fa",
+    positive: "#4ade80",
+    primary: "#7aa7ff",
+    primarySoft: "#1d2f55",
+    shadow: "#000000",
+    surface: "#171d24",
+    surfaceMuted: "#202a35",
     text: "#f9fafb",
-    mutedText: "#d1d5db",
+    mutedText: "#aeb8c4",
+    warning: "#fbbf24",
   },
   dark: true,
 };

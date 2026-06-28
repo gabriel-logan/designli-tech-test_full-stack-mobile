@@ -1,7 +1,18 @@
+import MaterialDesignIcon from "@react-native-vector-icons/material-design-icons";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
+import StockListItem from "../components/stocks/StockListItem";
+import StockQuoteCard from "../components/stocks/StockQuoteCard";
+import AppButton from "../components/ui/AppButton";
+import AppTextInput from "../components/ui/AppTextInput";
+import EmptyState from "../components/ui/EmptyState";
+import ErrorState from "../components/ui/ErrorState";
+import Screen from "../components/ui/Screen";
+import SectionHeader from "../components/ui/SectionHeader";
+import { defaultStockSymbols } from "../constants";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { useStocksSocket } from "../hooks/useStocksSocket";
 import { getStocks } from "../services/queries/stocks";
@@ -10,105 +21,186 @@ import type { HomeTabScreenProps } from "../types/navigation";
 
 type Props = HomeTabScreenProps<"Stocks">;
 
-const stockListParams = {
-  limit: 5,
-  query: "apple",
-};
-
-const stockSymbols = ["AAPL", "MSFT", "GOOGL"];
-
 function Stocks({ navigation }: Props) {
   const { t } = useTranslation();
 
   const theme = useAppTheme();
   const styles = createStyles(theme);
 
+  const [query, setQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("apple");
+
   const stocksQuery = useQuery({
-    queryKey: ["stocks", "list", stockListParams],
-    queryFn: () => getStocks(stockListParams),
+    queryKey: ["stocks", "list", submittedQuery],
+    queryFn: () =>
+      getStocks({
+        limit: 25,
+        query: submittedQuery.trim() || undefined,
+      }),
   });
 
-  const stocksSocket = useStocksSocket(stockSymbols);
+  const stocksSocket = useStocksSocket(defaultStockSymbols);
+
+  function submitSearch() {
+    setSubmittedQuery(query.trim());
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.title}>{t("stocks.title")}</Text>
-        <Button
-          title={t("stocks.openSymbol", { symbol: "AAPL" })}
-          onPress={() =>
-            navigation.navigate("StockDetails", { symbol: "AAPL" })
+    <Screen>
+      <View style={styles.header}>
+        <View style={styles.headerCopy}>
+          <Text style={styles.title}>{t("stocks.title")}</Text>
+          <Text style={styles.subtitle}>{t("stocks.subtitle")}</Text>
+        </View>
+        <AppButton
+          icon={
+            <MaterialDesignIcon
+              color={theme.colors.primary}
+              name="refresh"
+              size={17}
+            />
           }
+          onPress={() => stocksQuery.refetch()}
+          size="small"
+          title={t("stocks.refresh")}
+          variant="secondary"
         />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("stocks.queryExample")}</Text>
-        {stocksQuery.isLoading && (
-          <Text style={styles.text}>{t("common.loading")}</Text>
-        )}
-        {stocksQuery.isError && (
-          <Text style={styles.error}>{t("common.requestError")}</Text>
-        )}
-        {stocksQuery.data?.map(stock => (
-          <Text key={stock.symbol} style={styles.text}>
-            {stock.displaySymbol} - {stock.description}
-          </Text>
-        ))}
+      <View style={styles.searchCard}>
+        <AppTextInput
+          label={t("stocks.searchLabel")}
+          onChangeText={setQuery}
+          onSubmitEditing={submitSearch}
+          placeholder={t("stocks.searchPlaceholder")}
+          returnKeyType="search"
+          value={query}
+        />
+        <AppButton
+          icon={<MaterialDesignIcon color="#ffffff" name="magnify" size={18} />}
+          onPress={submitSearch}
+          title={t("stocks.search")}
+        />
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("stocks.socketExample")}</Text>
-        <Text style={styles.text}>
-          {t(
-            stocksSocket.isConnected
-              ? "stocks.socketConnected"
-              : "stocks.socketDisconnected",
-          )}
-        </Text>
-        {stocksSocket.quotes.map(quote => (
-          <Text key={quote.symbol} style={styles.text}>
-            {quote.symbol}: ${quote.current}
-          </Text>
-        ))}
-      </View>
-
-      <Button
-        title={t("stocks.refresh")}
-        onPress={() => stocksQuery.refetch()}
+      <SectionHeader
+        subtitle={t("stocks.liveSubtitle")}
+        title={t("stocks.liveQuotes")}
       />
-    </ScrollView>
+
+      <View style={styles.liveGrid}>
+        {stocksSocket.quotes.length === 0 ? (
+          <View style={styles.loading}>
+            <ActivityIndicator color={theme.colors.primary} />
+            <Text style={styles.loadingText}>
+              {stocksSocket.isConnected
+                ? t("stocks.waitingQuotes")
+                : t("stocks.socketDisconnected")}
+            </Text>
+          </View>
+        ) : (
+          stocksSocket.quotes.map(quote => (
+            <StockQuoteCard
+              key={quote.symbol}
+              onPress={() =>
+                navigation.navigate("StockDetails", { symbol: quote.symbol })
+              }
+              quote={quote}
+            />
+          ))
+        )}
+      </View>
+
+      <SectionHeader
+        subtitle={t("stocks.resultsSubtitle")}
+        title={t("stocks.resultsTitle")}
+      />
+
+      {stocksQuery.isLoading && (
+        <View style={styles.loading}>
+          <ActivityIndicator color={theme.colors.primary} />
+          <Text style={styles.loadingText}>{t("common.loading")}</Text>
+        </View>
+      )}
+
+      {stocksQuery.isError && (
+        <ErrorState
+          message={t("common.requestError")}
+          onRetry={() => stocksQuery.refetch()}
+          retryLabel={t("common.retry")}
+          title={t("stocks.resultsError")}
+        />
+      )}
+
+      {stocksQuery.data?.length === 0 && (
+        <EmptyState
+          icon="magnify-close"
+          message={t("stocks.emptyMessage")}
+          title={t("stocks.emptyTitle")}
+        />
+      )}
+
+      {stocksQuery.data?.map(stock => (
+        <StockListItem
+          key={stock.symbol}
+          onPress={() =>
+            navigation.navigate("StockDetails", { symbol: stock.symbol })
+          }
+          stock={stock}
+        />
+      ))}
+    </Screen>
   );
 }
 
 const createStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    container: {
-      flexGrow: 1,
-      gap: 16,
-      padding: 24,
-      backgroundColor: theme.colors.background,
+    header: {
+      alignItems: "flex-start",
+      flexDirection: "row",
+      gap: 12,
+      justifyContent: "space-between",
+      paddingTop: 10,
     },
-    error: {
-      color: theme.colors.notification,
-      fontSize: 16,
+    headerCopy: {
+      flex: 1,
+      gap: 5,
     },
-    section: {
+    liveGrid: {
+      gap: 12,
+    },
+    loading: {
+      alignItems: "center",
+      backgroundColor: theme.colors.surface,
+      borderColor: theme.colors.border,
+      borderRadius: 8,
+      borderWidth: 1,
       gap: 8,
+      padding: 22,
     },
-    sectionTitle: {
-      color: theme.colors.text,
-      fontSize: 18,
-      fontWeight: "700",
-    },
-    text: {
+    loadingText: {
       color: theme.colors.mutedText,
-      fontSize: 16,
+      fontSize: 14,
+      textAlign: "center",
+    },
+    searchCard: {
+      backgroundColor: theme.colors.surface,
+      borderColor: theme.colors.border,
+      borderRadius: 8,
+      borderWidth: 1,
+      gap: 14,
+      padding: 16,
+    },
+    subtitle: {
+      color: theme.colors.mutedText,
+      fontSize: 15,
+      lineHeight: 22,
     },
     title: {
       color: theme.colors.text,
-      fontSize: 24,
-      fontWeight: "700",
+      fontSize: 30,
+      fontWeight: "900",
+      lineHeight: 36,
     },
   });
 

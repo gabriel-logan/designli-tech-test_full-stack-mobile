@@ -13,13 +13,17 @@ export function useStocksSocket(symbols?: string[]) {
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [isConnected, setIsConnected] = useState(stocksSocket.connected);
 
+  const symbolsKey = symbols?.join(",");
+
   useEffect(() => {
+    const subscribedSymbols = symbolsKey?.split(",").filter(Boolean);
+
     function subscribe() {
       setIsConnected(true);
 
       stocksSocket.emit(
         "subscribe",
-        { symbols },
+        { symbols: subscribedSymbols },
         (_response: SubscribeStocksResponse) => {},
       );
     }
@@ -39,7 +43,7 @@ export function useStocksSocket(symbols?: string[]) {
       stocksSocket.off("quotes", setQuotes);
       stocksSocket.disconnect();
     };
-  }, [symbols]);
+  }, [symbolsKey]);
 
   return {
     isConnected,

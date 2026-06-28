@@ -8,6 +8,10 @@ export const resources = {
   },
 } as const;
 
-export const apiBaseUrl = "http://localhost:3000/api";
+const localBackendUrl = "http://192.168.100.3:3000";
 
-export const socketBaseUrl = "http://localhost:3000";
+export const apiBaseUrl = `${localBackendUrl}/api`;
+
+export const socketBaseUrl = localBackendUrl;
+
+export const defaultStockSymbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"];
