@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -11,21 +10,18 @@ import type { HomeTabScreenProps } from "../types/navigation";
 
 type Props = HomeTabScreenProps<"Stocks">;
 
+const stockListParams = {
+  limit: 5,
+  query: "apple",
+};
+
+const stockSymbols = ["AAPL", "MSFT", "GOOGL"];
+
 function Stocks({ navigation }: Props) {
   const { t } = useTranslation();
 
   const theme = useAppTheme();
   const styles = createStyles(theme);
-
-  const stockListParams = useMemo(
-    () => ({
-      limit: 5,
-      query: "apple",
-    }),
-    [],
-  );
-
-  const stockSymbols = useMemo(() => ["AAPL", "MSFT", "GOOGL"], []);
 
   const stocksQuery = useQuery({
     queryKey: ["stocks", "list", stockListParams],
