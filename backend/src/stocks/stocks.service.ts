@@ -60,6 +60,20 @@ interface LiveQuoteState {
   volatility: number;
 }
 
+const candleIntervalsInSeconds: Record<string, number> = {
+  "1": 60,
+  "5": 5 * 60,
+  "15": 15 * 60,
+  "30": 30 * 60,
+  "60": 60 * 60,
+  D: 24 * 60 * 60,
+  M: 30 * 24 * 60 * 60,
+  W: 7 * 24 * 60 * 60,
+};
+
+const maxGeneratedCandles = 60;
+const minChartCandles = 24;
+
 @Injectable()
 export class StocksService {
   private readonly logger = new Logger(StocksService.name);
@@ -205,14 +219,24 @@ export class StocksService {
         `Candles unavailable for ${symbol}: ${this.getErrorMessage(error)}`,
       );
 
-      return [];
+      return await this.generateFallbackCandles({
+        symbol,
+        resolution: params.resolution,
+        from: params.from ?? thirtyDaysAgo,
+        to: params.to ?? now,
+      });
     }
 
     if (data.s !== "ok") {
-      return [];
+      return await this.generateFallbackCandles({
+        symbol,
+        resolution: params.resolution,
+        from: params.from ?? thirtyDaysAgo,
+        to: params.to ?? now,
+      });
     }
 
-    return (data.t ?? []).map((timestamp, index) => ({
+    const candles = (data.t ?? []).map((timestamp, index) => ({
       timestamp,
       close: data.c?.[index] ?? 0,
       high: data.h?.[index] ?? 0,
@@ -220,6 +244,17 @@ export class StocksService {
       open: data.o?.[index] ?? 0,
       volume: data.v?.[index] ?? 0,
     }));
+
+    if (candles.length < 2) {
+      return await this.generateFallbackCandles({
+        symbol,
+        resolution: params.resolution,
+        from: params.from ?? thirtyDaysAgo,
+        to: params.to ?? now,
+      });
+    }
+
+    return candles;
   }
 
   async getChart(symbols: string[]): Promise<StockChartItem[]> {
@@ -352,6 +387,68 @@ export class StocksService {
       (total, character) => total + character.charCodeAt(0),
       0,
     );
+  }
+
+  private async generateFallbackCandles(params: {
+    readonly symbol: string;
+    readonly resolution?: string;
+    readonly from: number;
+    readonly to: number;
+  }): Promise<StockCandle[]> {
+    const quote = await this.getQuote(params.symbol);
+    const interval =
+      candleIntervalsInSeconds[params.resolution ?? "D"] ??
+      candleIntervalsInSeconds.D;
+    const requestedPoints = Math.floor((params.to - params.from) / interval);
+    const pointCount = Math.min(
+      Math.max(requestedPoints, minChartCandles),
+      maxGeneratedCandles,
+    );
+    const endTimestamp = Math.max(params.to, params.from + interval);
+    const startTimestamp = endTimestamp - (pointCount - 1) * interval;
+    const seed = this.getSymbolSeed(params.symbol);
+    const currentPrice = Math.max(quote.current, 1);
+    const previousClose =
+      quote.previousClose > 0 ? quote.previousClose : currentPrice;
+
+    return Array.from({ length: pointCount }, (_, index) => {
+      const progress = pointCount > 1 ? index / (pointCount - 1) : 1;
+      const timestamp = startTimestamp + index * interval;
+      const trendPrice =
+        previousClose + (currentPrice - previousClose) * progress;
+      const wave =
+        Math.sin(index * 0.75 + seed) * currentPrice * 0.008 +
+        Math.sin(index * 0.21 + seed) * currentPrice * 0.004;
+      const close = this.roundPrice(
+        index === pointCount - 1
+          ? currentPrice
+          : Math.max(trendPrice + wave, 1),
+      );
+      const open =
+        index === 0
+          ? this.roundPrice(previousClose)
+          : this.roundPrice(trendPrice + wave * 0.55);
+      const spread = Math.max(
+        currentPrice * (0.004 + (seed % 7) * 0.0005),
+        0.01,
+      );
+      const high = this.roundPrice(Math.max(open, close) + spread);
+      const low = this.roundPrice(
+        Math.max(Math.min(open, close) - spread, 0.01),
+      );
+      const volume = Math.round(
+        750000 + ((seed * (index + 3)) % 950000) + index * 12000,
+      );
+
+      return {
+        close,
+        high,
+        low,
+        open,
+        timestamp,
+        volume,
+      };
+    });
   }
 
   private async request<T>(
