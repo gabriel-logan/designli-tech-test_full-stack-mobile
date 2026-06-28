@@ -35,10 +35,12 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
+      const auth = this.configService.get("auth", { infer: true });
+
       request.user = await this.jwtService.verifyAsync<AuthenticatedUser>(
         token,
         {
-          secret: this.configService.get("auth.jwtSecret", { infer: true }),
+          secret: auth.jwtSecret,
         },
       );
 

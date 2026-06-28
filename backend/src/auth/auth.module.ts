@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import type { JwtModuleOptions } from "@nestjs/jwt";
 import { JwtModule } from "@nestjs/jwt";
 import type { EnvAuthConfig } from "src/configs/env.auth";
 import { UsersModule } from "src/users/users.module";
@@ -13,12 +14,17 @@ import { JwtAuthGuard } from "./jwt-auth.guard";
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService<EnvAuthConfig, true>) => ({
-        secret: configService.get("auth.jwtSecret", { infer: true }),
-        signOptions: {
-          expiresIn: configService.get("auth.jwtExpiresIn", { infer: true }),
-        },
-      }),
+      useFactory: (configService: ConfigService<EnvAuthConfig, true>) => {
+        const auth = configService.get("auth", { infer: true });
+        const signOptions: JwtModuleOptions["signOptions"] = {
+          expiresIn: auth.jwtExpiresIn,
+        };
+
+        return {
+          secret: auth.jwtSecret,
+          signOptions,
+        };
+      },
     }),
     UsersModule,
   ],

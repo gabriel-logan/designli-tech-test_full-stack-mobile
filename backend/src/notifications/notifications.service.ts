@@ -29,19 +29,16 @@ export class NotificationsService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    const serviceAccountPath = this.configService.get(
-      "firebase.serviceAccountPath",
-      { infer: true },
-    );
+    const firebase = this.configService.get("firebase", { infer: true });
 
-    if (!serviceAccountPath) {
+    if (!firebase.serviceAccountPath) {
       this.logger.warn("Firebase credentials not configured. Push disabled.");
 
       return;
     }
 
     const serviceAccount = JSON.parse(
-      readFileSync(serviceAccountPath, "utf8"),
+      readFileSync(firebase.serviceAccountPath, "utf8"),
     ) as ServiceAccount;
     const app =
       getApps()[0] ?? initializeApp({ credential: cert(serviceAccount) });

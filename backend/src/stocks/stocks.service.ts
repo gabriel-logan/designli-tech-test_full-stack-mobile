@@ -139,13 +139,15 @@ export class StocksService {
   }
 
   getDefaultSymbols(): string[] {
-    return this.configService.get("finnhub.defaultSymbols", { infer: true });
+    const finnhub = this.configService.get("finnhub", { infer: true });
+
+    return finnhub.defaultSymbols;
   }
 
   getPollIntervalMs(): number {
-    return this.configService.get("finnhub.pricePollIntervalMs", {
-      infer: true,
-    });
+    const finnhub = this.configService.get("finnhub", { infer: true });
+
+    return finnhub.pricePollIntervalMs;
   }
 
   normalizeSymbol(symbol: string): string {
@@ -171,13 +173,15 @@ export class StocksService {
     query: Record<string, string | undefined>,
   ): Promise<T> {
     const url = new URL(`${this.baseUrl}/${path}`);
-    const apiKey = this.configService.get("finnhub.apiKey", { infer: true });
+    const finnhub = this.configService.get("finnhub", { infer: true });
 
-    Object.entries({ ...query, token: apiKey }).forEach(([key, value]) => {
-      if (value) {
-        url.searchParams.set(key, value);
-      }
-    });
+    Object.entries({ ...query, token: finnhub.apiKey }).forEach(
+      ([key, value]) => {
+        if (value) {
+          url.searchParams.set(key, value);
+        }
+      },
+    );
 
     const response = await fetch(url);
 
