@@ -136,7 +136,9 @@ function StockDetails({ navigation, route }: Props) {
         />
       )}
 
-      {!!candlesQuery.data && <StockChart candles={candlesQuery.data} />}
+      {!!candlesQuery.data && (
+        <StockChart candles={candlesQuery.data} latestQuote={quote} />
+      )}
     </Screen>
   );
 }

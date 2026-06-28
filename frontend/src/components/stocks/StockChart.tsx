@@ -13,12 +13,13 @@ import Svg, {
 
 import { useAppTheme } from "../../hooks/useAppTheme";
 import type { AppTheme } from "../../styles/theme";
-import type { StockCandle } from "../../types/api";
+import type { StockCandle, StockQuote } from "../../types/api";
 import { formatCurrency, formatPercent } from "../../utils/formatters";
 import EmptyState from "../ui/EmptyState";
 
 interface StockChartProps {
   candles: StockCandle[];
+  latestQuote?: StockQuote | null;
   title?: string;
 }
 
@@ -30,7 +31,35 @@ const leftInset = 8;
 const rightInset = 62;
 const topInset = 10;
 
-function StockChart({ candles, title }: StockChartProps) {
+function applyLatestQuoteToCandles(
+  candles: StockCandle[],
+  latestQuote?: StockQuote | null,
+) {
+  if (!latestQuote || candles.length === 0 || latestQuote.current <= 0) {
+    return candles;
+  }
+
+  const nextCandles = [...candles];
+  const lastIndex = nextCandles.length - 1;
+  const lastCandle = nextCandles[lastIndex];
+  const currentPrice = latestQuote.current;
+
+  nextCandles[lastIndex] = {
+    ...lastCandle,
+    close: currentPrice,
+    high: Math.max(lastCandle.high, latestQuote.high, currentPrice),
+    low: Math.min(
+      lastCandle.low,
+      latestQuote.low || currentPrice,
+      currentPrice,
+    ),
+    timestamp: Math.max(lastCandle.timestamp, latestQuote.timestamp),
+  };
+
+  return nextCandles;
+}
+
+function StockChart({ candles, latestQuote, title }: StockChartProps) {
   const { t } = useTranslation();
 
   const theme = useAppTheme();
@@ -39,7 +68,8 @@ function StockChart({ candles, title }: StockChartProps) {
   const { width } = useWindowDimensions();
   const chartWidth = Math.max(Math.min(width - 72, 560), 284);
   const plotWidth = chartWidth - leftInset - rightInset;
-  const visibleCandles = candles.slice(-32);
+  const liveCandles = applyLatestQuoteToCandles(candles, latestQuote);
+  const visibleCandles = liveCandles.slice(-32);
 
   if (visibleCandles.length < 2) {
     return (

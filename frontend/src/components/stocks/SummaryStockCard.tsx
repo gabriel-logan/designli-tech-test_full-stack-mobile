@@ -18,6 +18,7 @@ function SummaryStockCard({ item, onPress }: SummaryStockCardProps) {
       <StockQuoteCard onPress={onPress} quote={item.quote} />
       <StockChart
         candles={item.candles}
+        latestQuote={item.quote}
         title={t("stocks.symbolTrend", { symbol: item.symbol })}
       />
     </View>
