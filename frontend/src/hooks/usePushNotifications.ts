@@ -1,10 +1,14 @@
-import messaging from "@react-native-firebase/messaging";
-import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { getApp } from "@react-native-firebase/app";
+import {
+  getMessaging,
+  getToken,
+  registerDeviceForRemoteMessages,
+} from "@react-native-firebase/messaging";
+import { useEffect, useRef } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 
 import { registerDevice } from "../services/mutations/devices";
-import { useUserStore } from "../stores/userStore";
+import { useAuthStore } from "../stores/authStore";
 
 async function requestAndroidPermission() {
   if (Platform.OS !== "android" || Number(Platform.Version) < 33) {
@@ -25,24 +29,18 @@ async function getFcmToken() {
     return null;
   }
 
-  const permission = await messaging().requestPermission();
-  const isAllowed =
-    permission === messaging.AuthorizationStatus.AUTHORIZED ||
-    permission === messaging.AuthorizationStatus.PROVISIONAL;
+  const messagingInstance = getMessaging(getApp());
 
-  if (!isAllowed) {
-    return null;
+  if (Platform.OS === "ios") {
+    await registerDeviceForRemoteMessages(messagingInstance);
   }
 
-  return await messaging().getToken();
+  return await getToken(messagingInstance);
 }
 
 export function usePushNotifications() {
-  const accessToken = useUserStore(state => state.accessToken);
-
-  const registerDeviceMutation = useMutation({
-    mutationFn: registerDevice,
-  });
+  const accessToken = useAuthStore(state => state.accessToken);
+  const registeredSessionRef = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -54,13 +52,22 @@ export function usePushNotifications() {
 
       try {
         const fcmToken = await getFcmToken();
+        const registrationKey = `${accessToken}:${fcmToken}`;
 
-        if (mounted && fcmToken) {
-          registerDeviceMutation.mutate({
-            fcmToken,
-            platform: Platform.OS,
-          });
+        if (
+          !mounted ||
+          !fcmToken ||
+          registeredSessionRef.current === registrationKey
+        ) {
+          return;
         }
+
+        await registerDevice({
+          fcmToken,
+          platform: Platform.OS,
+        });
+
+        registeredSessionRef.current = registrationKey;
       } catch (error) {
         console.warn("Could not register push notifications", error);
       }
@@ -71,5 +78,5 @@ export function usePushNotifications() {
     return () => {
       mounted = false;
     };
-  }, [accessToken, registerDeviceMutation]);
+  }, [accessToken]);
 }

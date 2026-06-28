@@ -6,7 +6,7 @@ import Auth from "../pages/Auth";
 import CreateAlert from "../pages/CreateAlert";
 import NotFound from "../pages/NotFound";
 import StockDetails from "../pages/StockDetails";
-import { useUserStore } from "../stores/userStore";
+import { useAuthStore } from "../stores/authStore";
 import type { RootStackParamList } from "../types/navigation";
 import HomeTabRoutes from "./HomeTabRoutes";
 
@@ -14,8 +14,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootStackRoutes() {
   const { t } = useTranslation();
-  const accessToken = useUserStore(state => state.accessToken);
-  const hasHydrated = useUserStore(state => state.hasHydrated);
+
+  const accessToken = useAuthStore(state => state.accessToken);
+  const hasHydrated = useAuthStore(state => state.hasHydrated);
 
   if (!hasHydrated) {
     return (

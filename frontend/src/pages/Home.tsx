@@ -12,7 +12,7 @@ import { defaultStockSymbols } from "../constants";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { useStocksSocket } from "../hooks/useStocksSocket";
 import { getStocksSummary } from "../services/queries/stocks";
-import { useUserStore } from "../stores/userStore";
+import { useAuthStore } from "../stores/authStore";
 import type { AppTheme } from "../styles/theme";
 import type { HomeTabScreenProps } from "../types/navigation";
 import { formatCurrency, formatPercent } from "../utils/formatters";
@@ -24,9 +24,11 @@ function Home({ navigation }: Props) {
 
   const theme = useAppTheme();
   const styles = createStyles(theme);
+
   const queryClient = useQueryClient();
-  const authUser = useUserStore(state => state.authUser);
-  const logout = useUserStore(state => state.logout);
+
+  const authUser = useAuthStore(state => state.authUser);
+  const logout = useAuthStore(state => state.logout);
 
   const summaryQuery = useQuery({
     queryKey: ["stocks", "summary"],
@@ -34,6 +36,7 @@ function Home({ navigation }: Props) {
   });
 
   const stocksSocket = useStocksSocket(defaultStockSymbols);
+
   const summaryItems = summaryQuery.data ?? [];
   const socketQuotes = stocksSocket.quotes;
   const quotes =
@@ -51,8 +54,8 @@ function Home({ navigation }: Props) {
     undefined as (typeof quotes)[number] | undefined,
   );
 
-  function signOut() {
-    logout();
+  async function signOut() {
+    await logout();
     queryClient.clear();
   }
 

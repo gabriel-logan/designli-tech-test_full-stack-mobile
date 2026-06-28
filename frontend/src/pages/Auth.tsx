@@ -1,5 +1,10 @@
 import MaterialDesignIcon from "@react-native-vector-icons/material-design-icons";
 import { useMutation } from "@tanstack/react-query";
+import {
+  validateEmail,
+  validateName,
+  validatePassword,
+} from "multiform-validator";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
@@ -10,7 +15,7 @@ import Screen from "../components/ui/Screen";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { login, register } from "../services/mutations/auth";
-import { useUserStore } from "../stores/userStore";
+import { useAuthStore } from "../stores/authStore";
 import type { AppTheme } from "../styles/theme";
 import getAxiosErrorMessage from "../utils/getAxiosErrorMessage";
 
@@ -27,7 +32,7 @@ function Auth() {
 
   const theme = useAppTheme();
   const styles = createStyles(theme);
-  const setAuth = useUserStore(state => state.setAuth);
+  const setAuth = useAuthStore(state => state.setAuth);
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
@@ -47,25 +52,62 @@ function Auth() {
     onError: error => {
       setRequestError(getAxiosErrorMessage(error, t("auth.requestError")));
     },
-    onSuccess: auth => {
+    onSuccess: async auth => {
       setRequestError("");
-      setAuth(auth);
+      await setAuth(auth);
     },
   });
 
   function validateForm() {
     const nextErrors: FieldErrors = {};
 
-    if (mode === "register" && name.trim().length < 2) {
-      nextErrors.name = t("auth.nameError");
+    const emailValidation = validateEmail(email.trim(), {
+      maxLength: 254,
+      errorMsg: [
+        t("auth.emailRequired"),
+        t("auth.emailInvalid"),
+        t("auth.emailTooLong"),
+        t("auth.emailCountryInvalid"),
+        t("auth.emailDomainInvalid"),
+      ],
+    });
+    const passwordValidation = validatePassword(password, {
+      maxLength: 128,
+      minLength: 6,
+      errorMsg: [
+        t("auth.passwordTooLong"),
+        t("auth.passwordTooShort"),
+        t("auth.passwordUppercaseRequired"),
+        t("auth.passwordSpecialRequired"),
+        t("auth.passwordNumberRequired"),
+        t("auth.passwordLetterRequired"),
+      ],
+    });
+
+    if (mode === "register") {
+      const nameValidation = validateName(name.trim(), {
+        maxLength: 80,
+        minLength: 2,
+        errorMsg: [
+          t("auth.nameRequired"),
+          t("auth.nameNoNumbers"),
+          t("auth.nameNoSpecialChars"),
+          t("auth.nameInvalid"),
+          t("auth.nameTooLong"),
+        ],
+      });
+
+      if (!nameValidation.isValid) {
+        nextErrors.name = nameValidation.errorMsg;
+      }
     }
 
-    if (!email.includes("@")) {
-      nextErrors.email = t("auth.emailError");
+    if (!emailValidation.isValid) {
+      nextErrors.email = emailValidation.errorMsg;
     }
 
-    if (password.length < 6) {
-      nextErrors.password = t("auth.passwordError");
+    if (!passwordValidation.isValid) {
+      nextErrors.password = passwordValidation.errorMsg;
     }
 
     setErrors(nextErrors);

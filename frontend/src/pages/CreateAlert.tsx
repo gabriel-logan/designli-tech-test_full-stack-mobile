@@ -1,5 +1,6 @@
 import MaterialDesignIcon from "@react-native-vector-icons/material-design-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isDecimal, isEmpty, isNumber } from "multiform-validator";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
@@ -55,13 +56,24 @@ function CreateAlert({ navigation, route }: Props) {
 
   function validateForm() {
     const nextErrors: FieldErrors = {};
-    const parsedTarget = Number(targetPrice.replace(",", "."));
 
-    if (normalizedSymbol.length === 0) {
+    const normalizedTargetPrice = targetPrice.replace(",", ".");
+
+    const parsedTarget = Number(normalizedTargetPrice);
+
+    const hasValidNumber =
+      !isEmpty(normalizedTargetPrice) &&
+      (isDecimal(normalizedTargetPrice) || isNumber(normalizedTargetPrice));
+
+    if (isEmpty(normalizedSymbol)) {
       nextErrors.symbol = t("alerts.symbolError");
     }
 
-    if (!Number.isFinite(parsedTarget) || parsedTarget <= 0) {
+    if (
+      !hasValidNumber ||
+      !Number.isFinite(parsedTarget) ||
+      parsedTarget <= 0
+    ) {
       nextErrors.targetPrice = t("alerts.targetError");
     }
 
