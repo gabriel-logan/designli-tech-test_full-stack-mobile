@@ -42,6 +42,9 @@ function Home({ navigation }: Props) {
 
   const summaryItems = summaryQuery.data ?? [];
   const socketQuotes = stocksSocket.quotes;
+  const liveQuotesBySymbol = new Map(
+    socketQuotes.map(quote => [quote.symbol, quote]),
+  );
   const quotes =
     socketQuotes.length > 0
       ? socketQuotes
@@ -175,7 +178,10 @@ function Home({ navigation }: Props) {
 
       {summaryItems.map(item => (
         <SummaryStockCard
-          item={item}
+          item={{
+            ...item,
+            quote: liveQuotesBySymbol.get(item.symbol) ?? item.quote,
+          }}
           key={item.symbol}
           onPress={() =>
             navigation.navigate("StockDetails", { symbol: item.symbol })

@@ -135,7 +135,11 @@
     "locales": {
       "en": "English"
     },
+    "notifications": "Notifications",
+    "notificationsSubtitle": "Control how the app alerts you while it is open.",
     "subtitle": "Manage appearance, language, and your session.",
+    "stockAlertSound": "Stock alert sound",
+    "stockAlertSoundDescription": "Play the alert audio when a stock notification arrives in the app.",
     "systemTheme": "System",
     "theme": "Theme",
     "themeSubtitle": "Use the system setting or choose a fixed theme.",

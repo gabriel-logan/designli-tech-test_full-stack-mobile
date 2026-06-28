@@ -16,6 +16,7 @@ import {
 } from "../lib/pushNotifications";
 import { registerDevice } from "../services/mutations/devices";
 import { useAuthStore } from "../stores/authStore";
+import { useUserStore } from "../stores/userStore";
 
 async function requestAndroidPermission() {
   if (Platform.OS !== "android" || Number(Platform.Version) < 33) {
@@ -49,6 +50,9 @@ async function getFcmToken() {
 
 export function usePushNotifications() {
   const accessToken = useAuthStore(state => state.accessToken);
+  const stockAlertSoundEnabled = useUserStore(
+    state => state.stockAlertSoundEnabled,
+  );
   const registeredSessionRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -59,7 +63,10 @@ export function usePushNotifications() {
       messagingInstance,
       async message => {
         try {
-          playStockAlertAudio();
+          if (stockAlertSoundEnabled) {
+            playStockAlertAudio();
+          }
+
           await displayStockAlertNotification(message);
         } catch (error) {
           console.warn("Could not handle foreground notification", error);
@@ -109,5 +116,5 @@ export function usePushNotifications() {
       unsubscribeForegroundMessages();
       unsubscribeTokenRefresh();
     };
-  }, [accessToken]);
+  }, [accessToken, stockAlertSoundEnabled]);
 }

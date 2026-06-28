@@ -9,10 +9,11 @@ import {
   type RemoteMessage,
   setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
+import { Image } from "react-native";
 import Sound from "react-native-sound";
 
 export const stockAlertChannelId = "stock_alerts";
-const stockAlertAudioFile = "notify.mp3";
+const stockAlertAudio = require("../assets/audios/notify.mp3") as number;
 
 let notificationSound: Sound | null = null;
 let notificationSoundLoadFailed = false;
@@ -79,20 +80,25 @@ export function playStockAlertAudio() {
   }
 
   if (!notificationSound) {
-    notificationSound = new Sound(
-      stockAlertAudioFile,
-      Sound.MAIN_BUNDLE,
-      error => {
-        if (error) {
-          notificationSoundLoadFailed = true;
-          console.warn("Could not load stock alert audio", error);
+    const source = Image.resolveAssetSource(stockAlertAudio);
 
-          return;
-        }
+    if (!source?.uri) {
+      notificationSoundLoadFailed = true;
+      console.warn("Could not resolve stock alert audio asset");
 
-        playStockAlertAudio();
-      },
-    );
+      return;
+    }
+
+    notificationSound = new Sound(source.uri, "", error => {
+      if (error) {
+        notificationSoundLoadFailed = true;
+        console.warn("Could not load stock alert audio", error);
+
+        return;
+      }
+
+      playStockAlertAudio();
+    });
 
     return;
   }

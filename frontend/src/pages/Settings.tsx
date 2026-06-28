@@ -2,7 +2,7 @@ import { Picker } from "@react-native-picker/picker";
 import MaterialDesignIcon from "@react-native-vector-icons/material-design-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Switch, Text, View } from "react-native";
 
 import AppButton from "../components/ui/AppButton";
 import Screen from "../components/ui/Screen";
@@ -30,6 +30,12 @@ function Settings() {
   const logout = useAuthStore(state => state.logout);
   const locale = useUserStore(state => state.locale);
   const setLocale = useUserStore(state => state.setLocale);
+  const stockAlertSoundEnabled = useUserStore(
+    state => state.stockAlertSoundEnabled,
+  );
+  const setStockAlertSoundEnabled = useUserStore(
+    state => state.setStockAlertSoundEnabled,
+  );
   const themeMode = useUserStore(state => state.themeMode);
   const setThemeMode = useUserStore(state => state.setThemeMode);
   const userName = formatUserDisplayName(authUser) || t("home.defaultUserName");
@@ -96,6 +102,34 @@ function Settings() {
               />
             ))}
           </Picker>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <SectionHeader
+          subtitle={t("settings.notificationsSubtitle")}
+          title={t("settings.notifications")}
+        />
+        <View style={styles.settingRow}>
+          <View style={styles.settingCopy}>
+            <Text style={styles.settingTitle}>
+              {t("settings.stockAlertSound")}
+            </Text>
+            <Text style={styles.settingDescription}>
+              {t("settings.stockAlertSoundDescription")}
+            </Text>
+          </View>
+          <Switch
+            onValueChange={setStockAlertSoundEnabled}
+            thumbColor={
+              stockAlertSoundEnabled ? theme.colors.primary : "#f4f4f5"
+            }
+            trackColor={{
+              false: theme.colors.border,
+              true: theme.colors.primarySoft,
+            }}
+            value={stockAlertSoundEnabled}
+          />
         </View>
       </View>
 
@@ -171,6 +205,26 @@ const createStyles = (theme: AppTheme) =>
       borderWidth: 1,
       gap: 14,
       padding: 16,
+    },
+    settingCopy: {
+      flex: 1,
+      gap: 3,
+    },
+    settingDescription: {
+      color: theme.colors.mutedText,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    settingRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 14,
+      justifyContent: "space-between",
+    },
+    settingTitle: {
+      color: theme.colors.text,
+      fontSize: 15,
+      fontWeight: "800",
     },
     subtitle: {
       color: theme.colors.mutedText,
