@@ -70,6 +70,8 @@
   "home": {
     "avgChange": "Avg change",
     "defaultUserName": "there",
+    "emptySummary": "Market data unavailable",
+    "emptySummaryMessage": "Quotes are temporarily unavailable from the market data provider.",
     "marketOverview": "Market overview",
     "marketSubtitle": "Default symbols with quote and candle data from the backend.",
     "socketDescription": "Live quotes refresh through the Socket.IO stock namespace.",

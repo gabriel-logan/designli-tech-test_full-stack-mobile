@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import SummaryStockCard from "../components/stocks/SummaryStockCard";
 import AppButton from "../components/ui/AppButton";
+import EmptyState from "../components/ui/EmptyState";
 import ErrorState from "../components/ui/ErrorState";
 import Screen from "../components/ui/Screen";
 import SectionHeader from "../components/ui/SectionHeader";
@@ -161,6 +162,16 @@ function Home({ navigation }: Props) {
           title={t("home.summaryError")}
         />
       )}
+
+      {!summaryQuery.isLoading &&
+        !summaryQuery.isError &&
+        summaryItems.length === 0 && (
+          <EmptyState
+            icon="chart-line"
+            message={t("home.emptySummaryMessage")}
+            title={t("home.emptySummary")}
+          />
+        )}
 
       {summaryItems.map(item => (
         <SummaryStockCard

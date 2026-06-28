@@ -1,4 +1,8 @@
-import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { EnvFinnhubConfig } from "src/configs/env.finnhub";
 
@@ -44,6 +48,7 @@ interface FinnhubCandleResponse {
 
 @Injectable()
 export class StocksService {
+  private readonly logger = new Logger(StocksService.name);
   private readonly baseUrl = "https://finnhub.io/api/v1";
 
   constructor(
@@ -103,12 +108,24 @@ export class StocksService {
   }): Promise<StockCandle[]> {
     const now = Math.floor(Date.now() / 1000);
     const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
-    const data = await this.request<FinnhubCandleResponse>("stock/candle", {
-      symbol: this.normalizeSymbol(params.symbol),
-      resolution: params.resolution ?? "D",
-      from: String(params.from ?? thirtyDaysAgo),
-      to: String(params.to ?? now),
-    });
+    const symbol = this.normalizeSymbol(params.symbol);
+
+    let data: FinnhubCandleResponse;
+
+    try {
+      data = await this.request<FinnhubCandleResponse>("stock/candle", {
+        symbol,
+        resolution: params.resolution ?? "D",
+        from: String(params.from ?? thirtyDaysAgo),
+        to: String(params.to ?? now),
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to load candles for ${symbol}: ${this.getErrorMessage(error)}`,
+      );
+
+      return [];
+    }
 
     if (data.s !== "ok") {
       return [];
@@ -128,14 +145,11 @@ export class StocksService {
     const normalizedSymbols = symbols.map((symbol) =>
       this.normalizeSymbol(symbol),
     );
-
-    return await Promise.all(
-      normalizedSymbols.map(async (symbol) => ({
-        symbol,
-        quote: await this.getQuote(symbol),
-        candles: await this.getCandles({ symbol }),
-      })),
+    const chartItems = await Promise.all(
+      normalizedSymbols.map((symbol) => this.getChartItem(symbol)),
     );
+
+    return chartItems.filter((item): item is StockChartItem => item !== null);
   }
 
   getDefaultSymbols(): string[] {
@@ -166,6 +180,26 @@ export class StocksService {
       type: item.type ?? "Common Stock",
       currency: item.currency,
     };
+  }
+
+  private async getChartItem(symbol: string): Promise<StockChartItem | null> {
+    try {
+      return {
+        symbol,
+        quote: await this.getQuote(symbol),
+        candles: await this.getCandles({ symbol }),
+      };
+    } catch (error) {
+      this.logger.warn(
+        `Failed to load quote for ${symbol}: ${this.getErrorMessage(error)}`,
+      );
+
+      return null;
+    }
+  }
+
+  private getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
   }
 
   private async request<T>(
