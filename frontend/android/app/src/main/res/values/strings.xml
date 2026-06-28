@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">frontend</string>
+    <string name="stock_alert_notification_channel_id">stock_alerts</string>
 </resources>

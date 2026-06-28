@@ -18,6 +18,8 @@ interface StockAlertNotification {
   readonly currentPrice: number;
 }
 
+const stockAlertChannelId = "stock_alerts";
+
 @Injectable()
 export class NotificationsService implements OnModuleInit {
   private readonly logger = new Logger(NotificationsService.name);
@@ -66,6 +68,22 @@ export class NotificationsService implements OnModuleInit {
       notification: {
         title: `${params.symbol} price alert`,
         body: `${params.symbol} reached ${params.currentPrice.toFixed(2)} (target ${params.targetPrice.toFixed(2)})`,
+      },
+      android: {
+        priority: "high",
+        notification: {
+          channelId: stockAlertChannelId,
+          defaultSound: true,
+          defaultVibrateTimings: true,
+          sound: "default",
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+          },
+        },
       },
       data: {
         type: "stock_alert",

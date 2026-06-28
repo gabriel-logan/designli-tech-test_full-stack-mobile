@@ -2,11 +2,17 @@ import { getApp } from "@react-native-firebase/app";
 import {
   getMessaging,
   getToken,
+  onMessage,
+  onTokenRefresh,
   registerDeviceForRemoteMessages,
 } from "@react-native-firebase/messaging";
 import { useEffect, useRef } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 
+import {
+  displayStockAlertNotification,
+  ensureStockAlertNotificationChannel,
+} from "../lib/pushNotifications";
 import { registerDevice } from "../services/mutations/devices";
 import { useAuthStore } from "../stores/authStore";
 
@@ -23,6 +29,8 @@ async function requestAndroidPermission() {
 }
 
 async function getFcmToken() {
+  await ensureStockAlertNotificationChannel();
+
   const androidAllowed = await requestAndroidPermission();
 
   if (!androidAllowed) {
@@ -44,26 +52,34 @@ export function usePushNotifications() {
 
   useEffect(() => {
     let mounted = true;
+    const messagingInstance = getMessaging(getApp());
 
-    async function registerCurrentDevice() {
+    const unsubscribeForegroundMessages = onMessage(
+      messagingInstance,
+      async message => {
+        await displayStockAlertNotification(message);
+      },
+    );
+
+    async function registerCurrentDevice(fcmToken?: string) {
       if (!accessToken) {
         return;
       }
 
       try {
-        const fcmToken = await getFcmToken();
-        const registrationKey = `${accessToken}:${fcmToken}`;
+        const currentToken = fcmToken ?? (await getFcmToken());
+        const registrationKey = `${accessToken}:${currentToken}`;
 
         if (
           !mounted ||
-          !fcmToken ||
+          !currentToken ||
           registeredSessionRef.current === registrationKey
         ) {
           return;
         }
 
         await registerDevice({
-          fcmToken,
+          fcmToken: currentToken,
           platform: Platform.OS,
         });
 
@@ -73,10 +89,19 @@ export function usePushNotifications() {
       }
     }
 
+    const unsubscribeTokenRefresh = onTokenRefresh(
+      messagingInstance,
+      refreshedToken => {
+        registerCurrentDevice(refreshedToken);
+      },
+    );
+
     registerCurrentDevice();
 
     return () => {
       mounted = false;
+      unsubscribeForegroundMessages();
+      unsubscribeTokenRefresh();
     };
   }, [accessToken]);
 }
