@@ -1,12 +1,7 @@
-import { useTranslation } from "react-i18next";
-import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from "react-native";
+import { StatusBar, useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import Routes from "./src/routes";
 
 function App() {
   const isDarkMode = useColorScheme() === "dark";
@@ -14,28 +9,9 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
-      <AppContent />
+      <Routes />
     </SafeAreaProvider>
   );
 }
-
-function AppContent() {
-  const { t } = useTranslation();
-
-  return (
-    <View style={styles.container}>
-      <Text>{t("Home")}</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default App;
