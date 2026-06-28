@@ -5,10 +5,6 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { AlertsModule } from "./alerts/alerts.module";
 import { AppController } from "./app.controller";
 import { AuthModule } from "./auth/auth.module";
-import envAuth from "./configs/env.auth";
-import envDatabase from "./configs/env.database";
-import envFinnhub from "./configs/env.finnhub";
-import envFirebase from "./configs/env.firebase";
 import envGlobal from "./configs/env.global";
 import { DatabaseModule } from "./database/database.module";
 import { DevicesModule } from "./devices/devices.module";
@@ -20,7 +16,7 @@ import { UsersModule } from "./users/users.module";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [envGlobal, envDatabase, envAuth, envFinnhub, envFirebase],
+      load: [envGlobal],
     }),
     ScheduleModule.forRoot(),
     DatabaseModule,

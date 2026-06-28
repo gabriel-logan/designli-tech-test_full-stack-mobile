@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import type { JwtModuleOptions } from "@nestjs/jwt";
 import { JwtModule } from "@nestjs/jwt";
 import type { EnvAuthConfig } from "src/configs/env.auth";
+import envAuth from "src/configs/env.auth";
 import { UsersModule } from "src/users/users.module";
 
 import { AuthController } from "./auth.controller";
@@ -11,6 +12,7 @@ import { JwtAuthGuard } from "./jwt-auth.guard";
 
 @Module({
   imports: [
+    ConfigModule.forFeature(envAuth),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
