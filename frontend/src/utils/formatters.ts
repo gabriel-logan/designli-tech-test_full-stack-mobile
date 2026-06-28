@@ -1,5 +1,6 @@
 import { getCurrencies, getLocales } from "react-native-localize";
 
+import type { AuthUser } from "../types/api";
 import type { Locale } from "../types/locale";
 
 export function getDeviceLocale() {
@@ -60,4 +61,24 @@ export function formatDateTime(value?: string | null) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+export function formatUserDisplayName(user?: AuthUser | null) {
+  const name = user?.name?.trim();
+
+  if (name && !name.includes("@")) {
+    return name;
+  }
+
+  const emailLocalPart = user?.email?.split("@")[0]?.trim();
+
+  if (!emailLocalPart) {
+    return "";
+  }
+
+  return emailLocalPart
+    .split(/[._-]/)
+    .filter(Boolean)
+    .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
 }

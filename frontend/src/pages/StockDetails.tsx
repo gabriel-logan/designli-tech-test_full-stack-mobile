@@ -82,17 +82,34 @@ function StockDetails({ navigation, route }: Props) {
       <View style={styles.metricsGrid}>
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>{t("stocks.open")}</Text>
-          <Text style={styles.metricValue}>{formatCurrency(quote?.open)}</Text>
+          <Text
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
+            style={styles.metricValue}
+          >
+            {formatCurrency(quote?.open)}
+          </Text>
         </View>
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>{t("stocks.previousClose")}</Text>
-          <Text style={styles.metricValue}>
+          <Text
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
+            style={styles.metricValue}
+          >
             {formatCurrency(quote?.previousClose)}
           </Text>
         </View>
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>{t("stocks.volume")}</Text>
-          <Text style={styles.metricValue}>
+          <Text
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
+            style={styles.metricValue}
+          >
             {formatCompactNumber(latestCandle?.volume)}
           </Text>
         </View>

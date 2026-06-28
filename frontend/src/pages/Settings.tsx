@@ -14,6 +14,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useUserStore } from "../stores/userStore";
 import type { AppTheme } from "../styles/theme";
 import type { Locale } from "../types/locale";
+import { formatUserDisplayName } from "../utils/formatters";
 
 const availableLocales = Object.keys(resources) as Locale[];
 
@@ -31,6 +32,7 @@ function Settings() {
   const setLocale = useUserStore(state => state.setLocale);
   const themeMode = useUserStore(state => state.themeMode);
   const setThemeMode = useUserStore(state => state.setThemeMode);
+  const userName = formatUserDisplayName(authUser) || t("home.defaultUserName");
 
   async function signOut() {
     await logout();
@@ -53,9 +55,7 @@ function Settings() {
           />
         </View>
         <View style={styles.profileCopy}>
-          <Text style={styles.profileName}>
-            {authUser?.name?.trim() || t("home.defaultUserName")}
-          </Text>
+          <Text style={styles.profileName}>{userName}</Text>
           <Text style={styles.profileEmail}>{authUser?.email}</Text>
         </View>
       </View>

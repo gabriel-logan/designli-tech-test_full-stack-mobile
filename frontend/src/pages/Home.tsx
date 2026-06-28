@@ -15,7 +15,11 @@ import { getStocksSummary } from "../services/queries/stocks";
 import { useAuthStore } from "../stores/authStore";
 import type { AppTheme } from "../styles/theme";
 import type { HomeTabScreenProps } from "../types/navigation";
-import { formatCurrency, formatPercent } from "../utils/formatters";
+import {
+  formatCurrency,
+  formatPercent,
+  formatUserDisplayName,
+} from "../utils/formatters";
 
 type Props = HomeTabScreenProps<"Dashboard">;
 
@@ -26,7 +30,7 @@ function Home({ navigation }: Props) {
   const styles = createStyles(theme);
 
   const authUser = useAuthStore(state => state.authUser);
-  const userName = authUser?.name?.trim() || t("home.defaultUserName");
+  const userName = formatUserDisplayName(authUser) || t("home.defaultUserName");
 
   const summaryQuery = useQuery({
     queryKey: ["stocks", "summary"],
@@ -98,6 +102,9 @@ function Home({ navigation }: Props) {
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>{t("home.avgChange")}</Text>
           <Text
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
             style={[
               styles.metricValue,
               averageChange >= 0 ? styles.positive : styles.negative,
@@ -108,7 +115,12 @@ function Home({ navigation }: Props) {
         </View>
         <View style={styles.metricCard}>
           <Text style={styles.metricLabel}>{t("home.topPrice")}</Text>
-          <Text style={styles.metricValue}>
+          <Text
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
+            style={styles.metricValue}
+          >
             {topQuote ? formatCurrency(topQuote.current) : "--"}
           </Text>
         </View>
@@ -180,7 +192,6 @@ const createStyles = (theme: AppTheme) =>
       color: theme.colors.primary,
       fontSize: 13,
       fontWeight: "800",
-      textTransform: "uppercase",
     },
     loading: {
       alignItems: "center",
