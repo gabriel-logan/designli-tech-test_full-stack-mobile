@@ -58,8 +58,12 @@ export function usePushNotifications() {
     const unsubscribeForegroundMessages = onMessage(
       messagingInstance,
       async message => {
-        playStockAlertAudio();
-        await displayStockAlertNotification(message);
+        try {
+          playStockAlertAudio();
+          await displayStockAlertNotification(message);
+        } catch (error) {
+          console.warn("Could not handle foreground notification", error);
+        }
       },
     );
 

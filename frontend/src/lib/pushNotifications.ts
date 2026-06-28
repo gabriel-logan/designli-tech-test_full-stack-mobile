@@ -11,9 +11,8 @@ import {
 } from "@react-native-firebase/messaging";
 import Sound from "react-native-sound";
 
-import notifySoundFile from "../assets/audios/notify.mp3";
-
 export const stockAlertChannelId = "stock_alerts";
+const stockAlertAudioFile = "notify.mp3";
 
 let notificationSound: Sound | null = null;
 let notificationSoundLoadFailed = false;
@@ -80,16 +79,20 @@ export function playStockAlertAudio() {
   }
 
   if (!notificationSound) {
-    notificationSound = new Sound(notifySoundFile, error => {
-      if (error) {
-        notificationSoundLoadFailed = true;
-        console.warn("Could not load stock alert audio", error);
+    notificationSound = new Sound(
+      stockAlertAudioFile,
+      Sound.MAIN_BUNDLE,
+      error => {
+        if (error) {
+          notificationSoundLoadFailed = true;
+          console.warn("Could not load stock alert audio", error);
 
-        return;
-      }
+          return;
+        }
 
-      playStockAlertAudio();
-    });
+        playStockAlertAudio();
+      },
+    );
 
     return;
   }
