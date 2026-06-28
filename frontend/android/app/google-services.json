@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "812152500976",
+    "project_id": "designli-tech-test-e6f10",
+    "storage_bucket": "designli-tech-test-e6f10.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812152500976:android:e4daa6d43ac6566445c835",
+        "android_client_info": {
+          "package_name": "com.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNBU-vsrHV4nMAvm2IVxnHQT4wrlXdg9g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
