@@ -46,34 +46,22 @@ node -e "console.log(JSON.stringify(require('/absolute/path/to/firebase-service-
 Use the command output as the `.env` value. If `FIREBASE_SERVICE_ACCOUNT_JSON`
 is empty, push notifications are disabled and the rest of the API still runs.
 
-## Docker
+## Dependencies
 
-The backend can run fully in Docker with PostgreSQL, schema application, and the
-NestJS API container.
-
-```bash
-cp .env.example .env
-# fill FINNHUB_API_KEY and JWT_SECRET in .env
-docker compose up --build
-```
-
-The API runs at `http://localhost:3000/api`. Swagger is available at
-`http://localhost:3000/api/docs`.
-
-Inside Docker, the API uses the Compose service name `postgres` as the database
-host. The `schema` service applies `schema.sql` before the API starts.
-
-For Firebase push notifications in Docker, keep the same single-line JSON value
-in `.env`:
+Install the backend dependencies once before using the local API run option:
 
 ```bash
-FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+pnpm install
 ```
 
 ## Database
 
-The database is PostgreSQL in Docker. Atlas is configured in schema-based mode:
-the desired state lives in `schema.sql`, and no migration files are required.
+Use these commands to start PostgreSQL and apply the schema for the local API
+run. These commands prepare the database only; they do not start the NestJS
+development server.
+
+Atlas is configured in schema-based mode: the desired state lives in
+`schema.sql`, and no migration files are required.
 
 ```bash
 pnpm db:up
@@ -86,7 +74,10 @@ Useful inspection command:
 pnpm db:schema:inspect
 ```
 
-## Run
+## Local API Run
+
+Use this command to start only the NestJS API in development mode after the
+database setup above is complete.
 
 ```bash
 pnpm dev
@@ -94,6 +85,27 @@ pnpm dev
 
 The API runs at `http://localhost:3000/api`. Swagger is available at
 `http://localhost:3000/api/docs`.
+
+## Docker Run
+
+This is an optional path if the recruiter wants to run the whole backend stack
+through Docker. Docker Compose starts PostgreSQL, applies `schema.sql`, and then
+starts the NestJS API container. Do not run `pnpm db:up`,
+`pnpm db:schema:apply`, or `pnpm dev` separately when using this option.
+
+```bash
+docker compose up --build
+```
+
+Inside Docker, the API uses the Compose service name `postgres` as the database
+host. The `schema` service applies `schema.sql` before the API starts.
+
+For Firebase push notifications in Docker, keep the same single-line JSON value
+in `.env`:
+
+```bash
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+```
 
 ## Main Endpoints
 
