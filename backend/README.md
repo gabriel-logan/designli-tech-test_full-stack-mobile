@@ -21,6 +21,8 @@ Copy `.env.example` to `.env` and fill the external credentials:
 cp .env.example .env
 ```
 
+The `.env` file contains secrets and must stay local. It is ignored by Git.
+
 Required values:
 
 - `JWT_SECRET`: secret used to sign API tokens.
@@ -32,7 +34,9 @@ Required values:
 Do not use `frontend/android/app/google-services.json` for the backend. That file
 is Android client configuration. For push notifications from the backend, create
 a Firebase Admin SDK private key in Firebase Console > Project settings >
-Service accounts > Generate new private key, then set:
+Service accounts > Generate new private key.
+
+For local Node execution outside Docker, set an absolute path:
 
 ```bash
 FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/firebase-service-account.json
@@ -45,7 +49,7 @@ NestJS API container.
 
 ```bash
 cp .env.example .env
-# fill FINNHUB_API_KEY and JWT_SECRET
+# fill FINNHUB_API_KEY and JWT_SECRET in .env
 docker compose up --build
 ```
 
@@ -55,9 +59,21 @@ The API runs at `http://localhost:3000/api`. Swagger is available at
 Inside Docker, the API uses the Compose service name `postgres` as the database
 host. The `schema` service applies `schema.sql` before the API starts.
 
-For Firebase push notifications in Docker, mount your Admin SDK JSON and set
-`DOCKER_FIREBASE_SERVICE_ACCOUNT_PATH` to the container path you mounted. If it
-is not set, push notifications are disabled and the rest of the API still runs.
+For Firebase push notifications in Docker, create this ignored file:
+
+```text
+backend/secret/firebase-service-account.json
+```
+
+Then keep this value in `.env`:
+
+```bash
+FIREBASE_SERVICE_ACCOUNT_PATH=/app/secret/firebase-service-account.json
+```
+
+The `secret/` directory is mounted read-only into the API container and ignored
+by Git. If `FIREBASE_SERVICE_ACCOUNT_PATH` is empty, push notifications are
+disabled and the rest of the API still runs.
 
 ## Database
 
