@@ -58,6 +58,8 @@ coding-test repository so reviewers can build the Android app and validate the
 Firebase Cloud Messaging client integration without requesting extra Firebase
 client configuration files.
 
+Replace the google-services.json file with your information if necessary!
+
 This file is Firebase Android client configuration. It identifies the Firebase
 project used by the mobile app, but it is not the Firebase Admin SDK private key
 used by the backend to send notifications. Server-side push delivery still
