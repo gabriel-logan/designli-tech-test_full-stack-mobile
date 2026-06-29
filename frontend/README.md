@@ -14,7 +14,7 @@ management, theme switching, and Firebase Cloud Messaging device registration.
 
 Start the backend before running the mobile app. The backend can be running
 locally through `pnpm dev` after database setup, or through the optional Docker
-Compose flow documented in [`../backend/README.md`](../backend/README.md).
+Compose flow documented in the [backend README](../backend/README.md).
 
 ## .env
 
@@ -53,7 +53,7 @@ npm run ios
 
 ## Firebase Client Configuration
 
-`android/app/google-services.json` is intentionally committed for this
+[`android/app/google-services.json`](android/app/google-services.json) is intentionally committed for this
 coding-test repository so reviewers can build the Android app and validate the
 Firebase Cloud Messaging client integration without requesting extra Firebase
 client configuration files.
@@ -63,7 +63,8 @@ Replace the google-services.json file with your information if necessary!
 This file is Firebase Android client configuration. It identifies the Firebase
 project used by the mobile app, but it is not the Firebase Admin SDK private key
 used by the backend to send notifications. Server-side push delivery still
-requires `FIREBASE_SERVICE_ACCOUNT_JSON` in [`../backend/.env`](../backend/.env), and that private
+requires `FIREBASE_SERVICE_ACCOUNT_JSON`, documented in the
+[backend environment setup](../backend/README.md#environment), and that private
 service-account JSON must not be committed.
 
 For a production repository, the Firebase project should be restricted in the
