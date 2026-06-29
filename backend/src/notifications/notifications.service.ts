@@ -1,13 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  cert,
-  getApps,
-  initializeApp,
-  type ServiceAccount,
-} from "firebase-admin/app";
+import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging, type Messaging } from "firebase-admin/messaging";
-import { readFileSync } from "node:fs";
 import type { EnvFirebaseConfig } from "src/configs/env.firebase";
 import { DevicesService } from "src/devices/devices.service";
 
@@ -33,17 +27,15 @@ export class NotificationsService implements OnModuleInit {
   onModuleInit(): void {
     const firebase = this.configService.get("firebase", { infer: true });
 
-    if (!firebase.serviceAccountPath) {
+    if (!firebase.serviceAccountJson) {
       this.logger.warn("Firebase credentials not configured. Push disabled.");
 
       return;
     }
 
-    const serviceAccount = JSON.parse(
-      readFileSync(firebase.serviceAccountPath, "utf8"),
-    ) as ServiceAccount;
     const app =
-      getApps()[0] ?? initializeApp({ credential: cert(serviceAccount) });
+      getApps()[0] ??
+      initializeApp({ credential: cert(firebase.serviceAccountJson) });
 
     this.messaging = getMessaging(app);
   }

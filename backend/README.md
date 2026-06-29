@@ -29,18 +29,22 @@ Required values:
 - `FINNHUB_API_KEY`: Finnhub API token.
 - `STOCK_PRICE_POLL_INTERVAL_MS`: websocket quote push and alert processing interval. Defaults to `5000`.
 - `FINNHUB_QUOTE_REFRESH_INTERVAL_MS`: Finnhub quote refresh interval used as the live quote anchor. Defaults to `60000`.
-- `FIREBASE_SERVICE_ACCOUNT_PATH`: optional path to the Firebase Admin service account JSON file.
+- `FIREBASE_SERVICE_ACCOUNT_JSON`: optional Firebase Admin service account JSON as a single-line string.
 
 Do not use `frontend/android/app/google-services.json` for the backend. That file
 is Android client configuration. For push notifications from the backend, create
 a Firebase Admin SDK private key in Firebase Console > Project settings >
 Service accounts > Generate new private key.
 
-For local Node execution outside Docker, set an absolute path:
+Store the Firebase Admin SDK private key JSON in `FIREBASE_SERVICE_ACCOUNT_JSON`.
+For local use, generate the single-line value from the downloaded JSON file:
 
 ```bash
-FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/firebase-service-account.json
+node -e "console.log(JSON.stringify(require('/absolute/path/to/firebase-service-account.json')))"
 ```
+
+Use the command output as the `.env` value. If `FIREBASE_SERVICE_ACCOUNT_JSON`
+is empty, push notifications are disabled and the rest of the API still runs.
 
 ## Docker
 
@@ -59,21 +63,12 @@ The API runs at `http://localhost:3000/api`. Swagger is available at
 Inside Docker, the API uses the Compose service name `postgres` as the database
 host. The `schema` service applies `schema.sql` before the API starts.
 
-For Firebase push notifications in Docker, create this ignored file:
-
-```text
-backend/secret/firebase-service-account.json
-```
-
-Then keep this value in `.env`:
+For Firebase push notifications in Docker, keep the same single-line JSON value
+in `.env`:
 
 ```bash
-FIREBASE_SERVICE_ACCOUNT_PATH=/app/secret/firebase-service-account.json
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
 ```
-
-The `secret/` directory is mounted read-only into the API container and ignored
-by Git. If `FIREBASE_SERVICE_ACCOUNT_PATH` is empty, push notifications are
-disabled and the rest of the API still runs.
 
 ## Database
 

@@ -35,8 +35,8 @@ Required backend values include:
 
 - `FINNHUB_API_KEY`: API key used to load symbols, quotes, and candles.
 - `JWT_SECRET`: secret used to sign auth tokens.
-- `FIREBASE_SERVICE_ACCOUNT_PATH`: optional Firebase Admin service account JSON
-  path for push notifications.
+- `FIREBASE_SERVICE_ACCOUNT_JSON`: optional Firebase Admin service account JSON
+  as a single-line string for push notifications.
 - `STOCK_PRICE_POLL_INTERVAL_MS`: websocket and alert processing interval.
 - `FINNHUB_QUOTE_REFRESH_INTERVAL_MS`: interval used to refresh the real
   Finnhub quote backing the live quote stream.
