@@ -7,16 +7,16 @@ management, theme switching, and Firebase Cloud Messaging device registration.
 ## Requirements
 
 - Node.js 22.11 or newer
-- Android Studio and an Android emulator/device, or a configured iOS environment
+- Android Studio and an Android emulator/device
 - Running backend API
 
 ## Backend Requirement
 
 Start the backend before running the mobile app. The backend can be running
 locally through `pnpm dev` after database setup, or through the optional Docker
-Compose flow documented in `../backend/README.md`.
+Compose flow documented in [`../backend/README.md`](../backend/README.md).
 
-## Backend URL
+## .env
 
 Copy the example environment file and set the backend URL:
 
@@ -27,10 +27,6 @@ cp .env.example .env
 ```env
 FRONTEND_BACKEND_URL=http://10.0.2.2:3000
 ```
-
-Use an address reachable from the emulator/device. For Android emulator,
-`http://10.0.2.2:3000` points to the host machine. For a physical device, use the
-host machine LAN IP, for example `http://192.168.100.3:3000`.
 
 The app reads this value through `react-native-dotenv` using the `@env` import
 module. After changing `.env`, restart Metro with a clean cache:
@@ -65,7 +61,7 @@ client configuration files.
 This file is Firebase Android client configuration. It identifies the Firebase
 project used by the mobile app, but it is not the Firebase Admin SDK private key
 used by the backend to send notifications. Server-side push delivery still
-requires `FIREBASE_SERVICE_ACCOUNT_JSON` in `../backend/.env`, and that private
+requires `FIREBASE_SERVICE_ACCOUNT_JSON` in [`../backend/.env`](../backend/.env), and that private
 service-account JSON must not be committed.
 
 For a production repository, the Firebase project should be restricted in the
