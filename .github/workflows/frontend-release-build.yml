@@ -1,0 +1,91 @@
+name: Build Frontend Release
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to build"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Build Android AAB and APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    env:
+      FRONTEND_BACKEND_URL: ${{ vars.FRONTEND_BACKEND_URL || 'http://10.0.2.2:3000' }}
+
+    steps:
+      - name: Resolve ref
+        id: ref
+        working-directory: .
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ref=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: React Native Doctor
+        run: npx react-native doctor --verbose
+        continue-on-error: true
+
+      - name: Write environment file
+        run: printf 'FRONTEND_BACKEND_URL=%s\n' "$FRONTEND_BACKEND_URL" > .env
+
+      - name: Build Android App Bundle
+        run: npx react-native build-android --mode=release
+
+      - name: Build Android APK
+        working-directory: frontend/android
+        run: ./gradlew assembleRelease
+
+      - name: Upload Android App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-android-aab-${{ steps.ref.outputs.tag }}
+          path: frontend/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-android-apk-${{ steps.ref.outputs.tag }}
+          path: frontend/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
