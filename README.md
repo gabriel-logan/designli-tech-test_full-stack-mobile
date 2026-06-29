@@ -1,4 +1,4 @@
-# Designli Stock Alerts
+# Designli Stock Alerts - finish
 
 Full-stack React Native + Node application for the Designli developer test. The
 app lets users register/login, browse stock symbols, see live quote updates,
