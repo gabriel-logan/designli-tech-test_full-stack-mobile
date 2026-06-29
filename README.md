@@ -23,10 +23,11 @@ frontend/  React Native mobile application
 
 Use the local READMEs for complete setup and run instructions:
 
-- `backend/README.md`: environment variables, database setup, local API run with
-  `pnpm dev`, optional Docker run, endpoints, and real-time quote behavior.
-- `frontend/README.md`: backend URL setup, mobile app run commands, Firebase
-  client configuration, and mobile real-time quote behavior.
+- [Backend README](backend/README.md): environment variables, database setup,
+  local API run with `pnpm dev`, optional Docker run, endpoints, and real-time
+  quote behavior.
+- [Frontend README](frontend/README.md): backend URL setup, mobile app run
+  commands, Firebase client configuration, and mobile real-time quote behavior.
 
 The PostgreSQL desired schema used by Atlas and Docker Compose is located at
-`backend/schema.sql`.
+[backend/schema.sql](backend/schema.sql).
