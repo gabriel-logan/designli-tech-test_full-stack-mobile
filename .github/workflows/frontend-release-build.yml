@@ -12,7 +12,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   android:
@@ -76,16 +76,33 @@ jobs:
         working-directory: frontend/android
         run: ./gradlew assembleRelease
 
+      - name: Prepare release assets
+        id: assets
+        run: |
+          app_name="$(node -p "require('./app.json').displayName || require('./package.json').name")"
+          safe_app_name="$(printf '%s' "$app_name" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+|-+$//g')"
+          version="${{ steps.ref.outputs.tag }}"
+          mkdir -p dist
+          cp android/app/build/outputs/bundle/release/app-release.aab "dist/${safe_app_name}-${version}.aab"
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/${safe_app_name}-${version}.apk"
+          echo "aab=frontend/dist/${safe_app_name}-${version}.aab" >> "$GITHUB_OUTPUT"
+          echo "apk=frontend/dist/${safe_app_name}-${version}.apk" >> "$GITHUB_OUTPUT"
+
       - name: Upload Android App Bundle
         uses: actions/upload-artifact@v7
         with:
-          name: frontend-android-aab-${{ steps.ref.outputs.tag }}
-          path: frontend/android/app/build/outputs/bundle/release/app-release.aab
+          name: ${{ steps.ref.outputs.tag }}-android-aab
+          path: ${{ steps.assets.outputs.aab }}
           if-no-files-found: error
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v7
         with:
-          name: frontend-android-apk-${{ steps.ref.outputs.tag }}
-          path: frontend/android/app/build/outputs/apk/release/app-release.apk
+          name: ${{ steps.ref.outputs.tag }}-android-apk
+          path: ${{ steps.assets.outputs.apk }}
           if-no-files-found: error
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ steps.ref.outputs.tag }}" dist/*.aab dist/*.apk --clobber
