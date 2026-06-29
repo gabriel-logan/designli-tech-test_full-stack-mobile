@@ -10,7 +10,6 @@ export type RootStackParamList = {
   Home: NavigatorScreenParams<HomeTabParamList>;
   StockDetails: { symbol: string };
   CreateAlert: { symbol?: string } | undefined;
-  NotFound: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

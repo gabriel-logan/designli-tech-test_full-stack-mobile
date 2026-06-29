@@ -4,7 +4,6 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import Auth from "../pages/Auth";
 import CreateAlert from "../pages/CreateAlert";
-import NotFound from "../pages/NotFound";
 import StockDetails from "../pages/StockDetails";
 import { useAuthStore } from "../stores/authStore";
 import type { RootStackParamList } from "../types/navigation";
@@ -44,11 +43,6 @@ function RootStackRoutes() {
             name="CreateAlert"
             component={CreateAlert}
             options={{ title: t("alerts.create") }}
-          />
-          <Stack.Screen
-            name="NotFound"
-            component={NotFound}
-            options={{ title: t("notFound.headerTitle") }}
           />
         </>
       ) : (

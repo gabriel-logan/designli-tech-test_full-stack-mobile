@@ -28,21 +28,36 @@ function Stocks({ navigation }: Props) {
   const styles = createStyles(theme);
 
   const [query, setQuery] = useState("");
-  const [submittedQuery, setSubmittedQuery] = useState("apple");
+  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
+  const normalizedQuery = submittedQuery?.trim() ?? "";
+  const hasSubmittedQuery = normalizedQuery.length > 0;
 
   const stocksQuery = useQuery({
-    queryKey: ["stocks", "list", submittedQuery],
+    enabled: hasSubmittedQuery,
+    queryKey: ["stocks", "search", normalizedQuery],
     queryFn: () =>
       getStocks({
         limit: 25,
-        query: submittedQuery.trim() || undefined,
+        query: normalizedQuery,
       }),
   });
 
   const stocksSocket = useStocksSocket(defaultStockSymbols);
 
   function submitSearch() {
-    setSubmittedQuery(query.trim());
+    const nextQuery = query.trim();
+
+    if (nextQuery.length === 0) {
+      setSubmittedQuery(null);
+      return;
+    }
+
+    if (nextQuery === normalizedQuery) {
+      stocksQuery.refetch();
+      return;
+    }
+
+    setSubmittedQuery(nextQuery);
   }
 
   return (
@@ -60,6 +75,7 @@ function Stocks({ navigation }: Props) {
               size={17}
             />
           }
+          disabled={!hasSubmittedQuery}
           onPress={() => stocksQuery.refetch()}
           size="small"
           title={t("stocks.refresh")}
@@ -78,6 +94,7 @@ function Stocks({ navigation }: Props) {
         />
         <AppButton
           icon={<MaterialDesignIcon color="#ffffff" name="magnify" size={18} />}
+          loading={stocksQuery.isFetching}
           onPress={submitSearch}
           title={t("stocks.search")}
         />
@@ -116,6 +133,14 @@ function Stocks({ navigation }: Props) {
         title={t("stocks.resultsTitle")}
       />
 
+      {!hasSubmittedQuery && (
+        <EmptyState
+          icon="magnify"
+          message={t("stocks.searchStartMessage")}
+          title={t("stocks.searchStartTitle")}
+        />
+      )}
+
       {stocksQuery.isLoading && (
         <View style={styles.loading}>
           <ActivityIndicator color={theme.colors.primary} />
@@ -123,7 +148,7 @@ function Stocks({ navigation }: Props) {
         </View>
       )}
 
-      {stocksQuery.isError && (
+      {hasSubmittedQuery && stocksQuery.isError && (
         <ErrorState
           message={t("common.requestError")}
           onRetry={() => stocksQuery.refetch()}
@@ -132,7 +157,7 @@ function Stocks({ navigation }: Props) {
         />
       )}
 
-      {stocksQuery.data?.length === 0 && (
+      {hasSubmittedQuery && stocksQuery.data?.length === 0 && (
         <EmptyState
           icon="magnify-close"
           message={t("stocks.emptyMessage")}
@@ -140,15 +165,16 @@ function Stocks({ navigation }: Props) {
         />
       )}
 
-      {stocksQuery.data?.map(stock => (
-        <StockListItem
-          key={stock.symbol}
-          onPress={() =>
-            navigation.navigate("StockDetails", { symbol: stock.symbol })
-          }
-          stock={stock}
-        />
-      ))}
+      {hasSubmittedQuery &&
+        stocksQuery.data?.map(stock => (
+          <StockListItem
+            key={stock.symbol}
+            onPress={() =>
+              navigation.navigate("StockDetails", { symbol: stock.symbol })
+            }
+            stock={stock}
+          />
+        ))}
     </Screen>
   );
 }

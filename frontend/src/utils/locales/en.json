@@ -83,12 +83,6 @@
     "viewStocks": "Search",
     "welcome": "Welcome {{name}}"
   },
-  "notFound": {
-    "goHome": "Go home",
-    "headerTitle": "Not found",
-    "message": "The screen you are looking for does not exist in this app.",
-    "title": "Screen not found"
-  },
   "stocks": {
     "chartError": "Chart unavailable",
     "chartSubtitle": "Daily candles for the last available period.",
@@ -106,7 +100,6 @@
     "openSymbol": "Open {{symbol}}",
     "previousClose": "Prev close",
     "priceChart": "Price chart",
-    "queryExample": "React Query example",
     "quoteError": "Quote unavailable",
     "refresh": "Refresh",
     "resultsError": "Search unavailable",
@@ -115,10 +108,11 @@
     "search": "Search stocks",
     "searchLabel": "Company or symbol",
     "searchPlaceholder": "Apple, Microsoft, AAPL...",
+    "searchStartMessage": "Enter a company name or ticker to query Finnhub symbols.",
+    "searchStartTitle": "Search the market",
     "selectStock": "Select a stock",
     "socketConnected": "Real-time connected",
     "socketDisconnected": "Real-time disconnected",
-    "socketExample": "Socket.IO example",
     "subtitle": "Search Finnhub symbols and open detailed market data.",
     "symbolTrend": "{{symbol}} trend",
     "title": "Stocks",
