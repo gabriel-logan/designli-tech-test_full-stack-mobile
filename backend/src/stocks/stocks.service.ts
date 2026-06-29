@@ -111,6 +111,9 @@ export class StocksService {
       return (data.result ?? [])
         .map((item) => this.mapSymbol(item))
         .filter((item): item is StockSymbol => item !== null)
+        .filter((item, index, items) =>
+          this.isFirstSymbolOccurrence(item, index, items),
+        )
         .slice(0, params.limit ?? 50);
     }
 
@@ -121,6 +124,9 @@ export class StocksService {
     return data
       .map((item) => this.mapSymbol(item))
       .filter((item): item is StockSymbol => item !== null)
+      .filter((item, index, items) =>
+        this.isFirstSymbolOccurrence(item, index, items),
+      )
       .slice(0, params.limit ?? 50);
   }
 
@@ -284,6 +290,21 @@ export class StocksService {
       type: item.type ?? "Common Stock",
       currency: item.currency,
     };
+  }
+
+  private isFirstSymbolOccurrence(
+    item: StockSymbol,
+    index: number,
+    items: StockSymbol[],
+  ): boolean {
+    const symbol = this.normalizeSymbol(item.symbol);
+
+    return (
+      symbol.length > 0 &&
+      items.findIndex(
+        (candidate) => this.normalizeSymbol(candidate.symbol) === symbol,
+      ) === index
+    );
   }
 
   private async getChartItem(symbol: string): Promise<StockChartItem | null> {

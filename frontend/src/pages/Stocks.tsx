@@ -17,9 +17,26 @@ import { useAppTheme } from "../hooks/useAppTheme";
 import { useStocksSocket } from "../hooks/useStocksSocket";
 import { getStocks } from "../services/queries/stocks";
 import type { AppTheme } from "../styles/theme";
+import type { StockSymbol } from "../types/api";
 import type { HomeTabScreenProps } from "../types/navigation";
 
 type Props = HomeTabScreenProps<"Stocks">;
+
+function getUniqueStocks(stocks: StockSymbol[] = []) {
+  const symbols = new Set<string>();
+
+  return stocks.filter(stock => {
+    const symbol = stock.symbol.trim().toUpperCase();
+
+    if (!symbol || symbols.has(symbol)) {
+      return false;
+    }
+
+    symbols.add(symbol);
+
+    return true;
+  });
+}
 
 function Stocks({ navigation }: Props) {
   const { t } = useTranslation();
@@ -43,6 +60,7 @@ function Stocks({ navigation }: Props) {
   });
 
   const stocksSocket = useStocksSocket(defaultStockSymbols);
+  const stockResults = getUniqueStocks(stocksQuery.data);
 
   function submitSearch() {
     const nextQuery = query.trim();
@@ -83,23 +101,6 @@ function Stocks({ navigation }: Props) {
         />
       </View>
 
-      <View style={styles.searchCard}>
-        <AppTextInput
-          label={t("stocks.searchLabel")}
-          onChangeText={setQuery}
-          onSubmitEditing={submitSearch}
-          placeholder={t("stocks.searchPlaceholder")}
-          returnKeyType="search"
-          value={query}
-        />
-        <AppButton
-          icon={<MaterialDesignIcon color="#ffffff" name="magnify" size={18} />}
-          loading={stocksQuery.isFetching}
-          onPress={submitSearch}
-          title={t("stocks.search")}
-        />
-      </View>
-
       <SectionHeader
         subtitle={t("stocks.liveSubtitle")}
         title={t("stocks.liveQuotes")}
@@ -126,6 +127,23 @@ function Stocks({ navigation }: Props) {
             />
           ))
         )}
+      </View>
+
+      <View style={styles.searchCard}>
+        <AppTextInput
+          label={t("stocks.searchLabel")}
+          onChangeText={setQuery}
+          onSubmitEditing={submitSearch}
+          placeholder={t("stocks.searchPlaceholder")}
+          returnKeyType="search"
+          value={query}
+        />
+        <AppButton
+          icon={<MaterialDesignIcon color="#ffffff" name="magnify" size={18} />}
+          loading={stocksQuery.isFetching}
+          onPress={submitSearch}
+          title={t("stocks.search")}
+        />
       </View>
 
       <SectionHeader
@@ -157,7 +175,7 @@ function Stocks({ navigation }: Props) {
         />
       )}
 
-      {hasSubmittedQuery && stocksQuery.data?.length === 0 && (
+      {hasSubmittedQuery && stockResults.length === 0 && (
         <EmptyState
           icon="magnify-close"
           message={t("stocks.emptyMessage")}
@@ -166,9 +184,9 @@ function Stocks({ navigation }: Props) {
       )}
 
       {hasSubmittedQuery &&
-        stocksQuery.data?.map(stock => (
+        stockResults.map(stock => (
           <StockListItem
-            key={stock.symbol}
+            key={stock.symbol.trim().toUpperCase()}
             onPress={() =>
               navigation.navigate("StockDetails", { symbol: stock.symbol })
             }
