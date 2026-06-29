@@ -16,6 +16,10 @@ function StockListItem({ onPress, stock }: StockListItemProps) {
 
   return (
     <Pressable
+      accessibilityHint="Opens stock details."
+      accessibilityLabel={`${stock.displaySymbol}. ${stock.description}${
+        stock.currency ? `. ${stock.currency}` : ""
+      }`}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [styles.item, pressed && styles.pressed]}
@@ -36,7 +40,9 @@ function StockListItem({ onPress, stock }: StockListItemProps) {
           <Text style={styles.currency}>{stock.currency}</Text>
         )}
         <MaterialDesignIcon
+          accessibilityElementsHidden
           color={theme.colors.mutedText}
+          importantForAccessibility="no-hide-descendants"
           name="chevron-right"
           size={22}
         />

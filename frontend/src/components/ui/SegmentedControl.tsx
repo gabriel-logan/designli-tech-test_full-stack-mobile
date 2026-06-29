@@ -23,13 +23,15 @@ function SegmentedControl<T extends string>({
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.container}>
+    <View accessibilityRole="tablist" style={styles.container}>
       {segments.map(segment => {
         const selected = segment.value === value;
 
         return (
           <Pressable
-            accessibilityRole="button"
+            accessibilityLabel={segment.label}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
             key={segment.value}
             onPress={() => onChange(segment.value)}
             style={[styles.segment, selected && styles.selected]}

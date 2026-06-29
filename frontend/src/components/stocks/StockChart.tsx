@@ -101,6 +101,7 @@ function StockChart({ candles, latestQuote, title }: StockChartProps) {
   const latestColor = isLatestPositive
     ? theme.colors.positive
     : theme.colors.negative;
+  const chartTitle = title ?? t("stocks.priceChart");
 
   function getX(index: number) {
     return leftInset + slotWidth * index + slotWidth / 2;
@@ -127,7 +128,7 @@ function StockChart({ candles, latestQuote, title }: StockChartProps) {
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerCopy}>
-          <Text style={styles.title}>{title ?? t("stocks.priceChart")}</Text>
+          <Text style={styles.title}>{chartTitle}</Text>
           <Text style={styles.rangeText}>
             {formatCurrency(low)} - {formatCurrency(high)}
           </Text>
@@ -142,7 +143,14 @@ function StockChart({ candles, latestQuote, title }: StockChartProps) {
         </View>
       </View>
 
-      <Svg height={chartHeight} width={chartWidth}>
+      <Svg
+        accessibilityLabel={`${chartTitle}. ${formatCurrency(low)} - ${formatCurrency(
+          high,
+        )}. ${formatCurrency(latestClose)}. ${formatPercent(totalMovePercent)}.`}
+        accessibilityRole="image"
+        height={chartHeight}
+        width={chartWidth}
+      >
         <Defs>
           <LinearGradient id="closeFill" x1="0" x2="0" y1="0" y2="1">
             <Stop

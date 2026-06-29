@@ -21,9 +21,18 @@ function StockQuoteCard({ onPress, quote }: StockQuoteCardProps) {
   const isPositive = quote.change >= 0;
 
   const trendColor = isPositive ? theme.colors.positive : theme.colors.negative;
+  const accessibilityLabel = `${quote.symbol}. ${t("stocks.liveQuote")}. ${formatCurrency(
+    quote.current,
+  )}. ${formatPercent(quote.percentChange)}. ${t("stocks.low", {
+    value: formatCurrency(quote.low),
+  })}. ${t("stocks.high", { value: formatCurrency(quote.high) })}.`;
 
   return (
     <Pressable
+      accessibilityHint={
+        onPress ? t("stocks.openSymbol", { symbol: quote.symbol }) : undefined
+      }
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole={onPress ? "button" : undefined}
       disabled={!onPress}
       onPress={onPress}
@@ -36,7 +45,9 @@ function StockQuoteCard({ onPress, quote }: StockQuoteCardProps) {
         </View>
         <View style={styles.trend}>
           <MaterialDesignIcon
+            accessibilityElementsHidden
             color={trendColor}
+            importantForAccessibility="no-hide-descendants"
             name={isPositive ? "trending-up" : "trending-down"}
             size={18}
           />

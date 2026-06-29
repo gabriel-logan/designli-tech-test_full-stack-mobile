@@ -53,7 +53,9 @@ function Alerts({ navigation }: Props) {
         <AppButton
           icon={
             <MaterialDesignIcon
+              accessibilityElementsHidden
               color="#ffffff"
+              importantForAccessibility="no-hide-descendants"
               name="bell-plus-outline"
               size={18}
             />
@@ -65,8 +67,12 @@ function Alerts({ navigation }: Props) {
       </View>
 
       {alertsQuery.isLoading && (
-        <View style={styles.loading}>
-          <ActivityIndicator color={theme.colors.primary} />
+        <View accessibilityLiveRegion="polite" style={styles.loading}>
+          <ActivityIndicator
+            accessibilityLabel={t("common.loading")}
+            accessibilityRole="progressbar"
+            color={theme.colors.primary}
+          />
           <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       )}

@@ -169,6 +169,8 @@ function CreateAlert({ navigation, route }: Props) {
             ]}
           >
             <Picker
+              accessibilityHint={errors.symbol}
+              accessibilityLabel={t("alerts.symbol")}
               dropdownIconColor={theme.colors.text}
               enabled={!isLoadingStocks && hasStockOptions}
               onValueChange={selectSymbol}
@@ -219,7 +221,9 @@ function CreateAlert({ navigation, route }: Props) {
         {!!quoteQuery.data && (
           <View style={styles.quoteContext}>
             <MaterialDesignIcon
+              accessibilityElementsHidden
               color={theme.colors.primary}
+              importantForAccessibility="no-hide-descendants"
               name="chart-line"
               size={20}
             />
@@ -239,7 +243,9 @@ function CreateAlert({ navigation, route }: Props) {
         <AppButton
           icon={
             <MaterialDesignIcon
+              accessibilityElementsHidden
               color="#ffffff"
+              importantForAccessibility="no-hide-descendants"
               name="bell-plus-outline"
               size={18}
             />

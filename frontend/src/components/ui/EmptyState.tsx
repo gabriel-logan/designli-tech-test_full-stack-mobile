@@ -20,8 +20,14 @@ function EmptyState({
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.container}>
-      <MaterialDesignIcon color={theme.colors.primary} name={icon} size={28} />
+    <View accessibilityRole="summary" style={styles.container}>
+      <MaterialDesignIcon
+        accessibilityElementsHidden
+        color={theme.colors.primary}
+        importantForAccessibility="no-hide-descendants"
+        name={icon}
+        size={28}
+      />
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
     </View>

@@ -16,6 +16,11 @@ function AppTextInput({ error, label, style, ...props }: AppTextInputProps) {
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
+        accessibilityHint={error ?? props.accessibilityHint}
+        accessibilityLabel={props.accessibilityLabel ?? label}
+        accessibilityState={{
+          disabled: props.editable === false,
+        }}
         autoCapitalize="none"
         placeholderTextColor={theme.colors.mutedText}
         selectionColor={theme.colors.primary}

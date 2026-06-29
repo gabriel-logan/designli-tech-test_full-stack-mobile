@@ -76,11 +76,13 @@ function Home({ navigation }: Props) {
         <View style={styles.statusRow}>
           <View style={styles.statusIcon}>
             <MaterialDesignIcon
+              accessibilityElementsHidden
               color={
                 stocksSocket.isConnected
                   ? theme.colors.positive
                   : theme.colors.warning
               }
+              importantForAccessibility="no-hide-descendants"
               name={
                 stocksSocket.isConnected ? "access-point" : "access-point-off"
               }
@@ -135,7 +137,9 @@ function Home({ navigation }: Props) {
           <AppButton
             icon={
               <MaterialDesignIcon
+                accessibilityElementsHidden
                 color={theme.colors.primary}
+                importantForAccessibility="no-hide-descendants"
                 name="magnify"
                 size={17}
               />
@@ -151,8 +155,12 @@ function Home({ navigation }: Props) {
       />
 
       {summaryQuery.isLoading && (
-        <View style={styles.loading}>
-          <ActivityIndicator color={theme.colors.primary} />
+        <View accessibilityLiveRegion="polite" style={styles.loading}>
+          <ActivityIndicator
+            accessibilityLabel={t("common.loading")}
+            accessibilityRole="progressbar"
+            color={theme.colors.primary}
+          />
           <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       )}

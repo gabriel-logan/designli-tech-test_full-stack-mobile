@@ -17,9 +17,15 @@ function ErrorState({ message, onRetry, retryLabel, title }: ErrorStateProps) {
   const styles = createStyles(theme);
 
   return (
-    <View style={styles.container}>
+    <View
+      accessibilityLiveRegion="polite"
+      accessibilityRole="alert"
+      style={styles.container}
+    >
       <MaterialDesignIcon
+        accessibilityElementsHidden
         color={theme.colors.danger}
+        importantForAccessibility="no-hide-descendants"
         name="alert-circle-outline"
         size={28}
       />

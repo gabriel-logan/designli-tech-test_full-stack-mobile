@@ -50,7 +50,9 @@ function StockDetails({ navigation, route }: Props) {
         <AppButton
           icon={
             <MaterialDesignIcon
+              accessibilityElementsHidden
               color="#ffffff"
+              importantForAccessibility="no-hide-descendants"
               name="bell-plus-outline"
               size={18}
             />
@@ -62,8 +64,12 @@ function StockDetails({ navigation, route }: Props) {
       </View>
 
       {quoteQuery.isLoading && !quote && (
-        <View style={styles.loading}>
-          <ActivityIndicator color={theme.colors.primary} />
+        <View accessibilityLiveRegion="polite" style={styles.loading}>
+          <ActivityIndicator
+            accessibilityLabel={t("common.loading")}
+            accessibilityRole="progressbar"
+            color={theme.colors.primary}
+          />
           <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       )}
@@ -121,8 +127,12 @@ function StockDetails({ navigation, route }: Props) {
       />
 
       {candlesQuery.isLoading && (
-        <View style={styles.loading}>
-          <ActivityIndicator color={theme.colors.primary} />
+        <View accessibilityLiveRegion="polite" style={styles.loading}>
+          <ActivityIndicator
+            accessibilityLabel={t("common.loading")}
+            accessibilityRole="progressbar"
+            color={theme.colors.primary}
+          />
           <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       )}

@@ -37,6 +37,7 @@ function Screen({ children, scroll = true }: ScreenProps) {
         <ScrollView
           contentContainerStyle={contentStyle}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
           showsVerticalScrollIndicator={false}
         >
           {children}

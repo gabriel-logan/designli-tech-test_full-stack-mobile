@@ -14,6 +14,8 @@ type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 type ButtonSize = "regular" | "small";
 
 interface AppButtonProps {
+  accessibilityHint?: string;
+  accessibilityLabel?: string;
   title: string;
   onPress: () => void;
   disabled?: boolean;
@@ -25,6 +27,8 @@ interface AppButtonProps {
 }
 
 function AppButton({
+  accessibilityHint,
+  accessibilityLabel,
   title,
   onPress,
   disabled = false,
@@ -39,7 +43,10 @@ function AppButton({
 
   return (
     <Pressable
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel ?? title}
       accessibilityRole="button"
+      accessibilityState={{ busy: loading, disabled: disabled || loading }}
       disabled={disabled || loading}
       onPress={onPress}
       style={({ pressed }) => [
@@ -52,7 +59,11 @@ function AppButton({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={getLoaderColor(theme, variant)} />
+        <ActivityIndicator
+          accessibilityElementsHidden
+          color={getLoaderColor(theme, variant)}
+          importantForAccessibility="no-hide-descendants"
+        />
       ) : (
         icon
       )}

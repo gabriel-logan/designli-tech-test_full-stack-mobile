@@ -88,7 +88,9 @@ function Stocks({ navigation }: Props) {
         <AppButton
           icon={
             <MaterialDesignIcon
+              accessibilityElementsHidden
               color={theme.colors.primary}
+              importantForAccessibility="no-hide-descendants"
               name="refresh"
               size={17}
             />
@@ -109,7 +111,15 @@ function Stocks({ navigation }: Props) {
       <View style={styles.liveGrid}>
         {stocksSocket.quotes.length === 0 ? (
           <View style={styles.loading}>
-            <ActivityIndicator color={theme.colors.primary} />
+            <ActivityIndicator
+              accessibilityLabel={
+                stocksSocket.isConnected
+                  ? t("stocks.waitingQuotes")
+                  : t("stocks.socketDisconnected")
+              }
+              accessibilityRole="progressbar"
+              color={theme.colors.primary}
+            />
             <Text style={styles.loadingText}>
               {stocksSocket.isConnected
                 ? t("stocks.waitingQuotes")
@@ -139,7 +149,15 @@ function Stocks({ navigation }: Props) {
           value={query}
         />
         <AppButton
-          icon={<MaterialDesignIcon color="#ffffff" name="magnify" size={18} />}
+          icon={
+            <MaterialDesignIcon
+              accessibilityElementsHidden
+              color="#ffffff"
+              importantForAccessibility="no-hide-descendants"
+              name="magnify"
+              size={18}
+            />
+          }
           loading={stocksQuery.isFetching}
           onPress={submitSearch}
           title={t("stocks.search")}
@@ -160,8 +178,12 @@ function Stocks({ navigation }: Props) {
       )}
 
       {stocksQuery.isLoading && (
-        <View style={styles.loading}>
-          <ActivityIndicator color={theme.colors.primary} />
+        <View accessibilityLiveRegion="polite" style={styles.loading}>
+          <ActivityIndicator
+            accessibilityLabel={t("common.loading")}
+            accessibilityRole="progressbar"
+            color={theme.colors.primary}
+          />
           <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       )}

@@ -19,8 +19,12 @@ function RootStackRoutes() {
 
   if (!hasHydrated) {
     return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" />
+      <View accessibilityLiveRegion="polite" style={styles.loading}>
+        <ActivityIndicator
+          accessibilityLabel={t("common.loading")}
+          accessibilityRole="progressbar"
+          size="large"
+        />
       </View>
     );
   }

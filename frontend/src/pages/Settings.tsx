@@ -55,7 +55,9 @@ function Settings() {
       <View style={styles.profileCard}>
         <View style={styles.avatar}>
           <MaterialDesignIcon
+            accessibilityElementsHidden
             color={theme.colors.primary}
+            importantForAccessibility="no-hide-descendants"
             name="account-outline"
             size={26}
           />
@@ -89,6 +91,7 @@ function Settings() {
         />
         <View style={styles.pickerContainer}>
           <Picker
+            accessibilityLabel={t("settings.language")}
             dropdownIconColor={theme.colors.text}
             onValueChange={value => setLocale(value as Locale)}
             selectedValue={locale}
@@ -120,6 +123,8 @@ function Settings() {
             </Text>
           </View>
           <Switch
+            accessibilityLabel={t("settings.stockAlertSound")}
+            accessibilityState={{ checked: stockAlertSoundEnabled }}
             onValueChange={setStockAlertSoundEnabled}
             thumbColor={
               stockAlertSoundEnabled ? theme.colors.primary : "#f4f4f5"
@@ -139,7 +144,15 @@ function Settings() {
           title={t("settings.account")}
         />
         <AppButton
-          icon={<MaterialDesignIcon color="#ffffff" name="logout" size={18} />}
+          icon={
+            <MaterialDesignIcon
+              accessibilityElementsHidden
+              color="#ffffff"
+              importantForAccessibility="no-hide-descendants"
+              name="logout"
+              size={18}
+            />
+          }
           onPress={signOut}
           title={t("auth.logout")}
           variant="danger"

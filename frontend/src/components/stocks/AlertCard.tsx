@@ -33,7 +33,15 @@ function AlertCard({
     : styles.inactiveStatus;
 
   return (
-    <View style={styles.card}>
+    <View
+      accessibilityLabel={`${alert.symbol}. ${
+        alert.active ? t("alerts.active") : t("alerts.inactive")
+      }. ${t("alerts.target")}: ${formatCurrency(alert.targetPrice)}. ${t(
+        "alerts.lastTriggered",
+      )}: ${formatCurrency(alert.lastTriggeredPrice)}.`}
+      accessibilityRole="summary"
+      style={styles.card}
+    >
       <View style={styles.header}>
         <View>
           <Text style={styles.symbol}>{alert.symbol}</Text>
@@ -43,9 +51,11 @@ function AlertCard({
         </View>
         <View style={[styles.status, statusStyle]}>
           <MaterialDesignIcon
+            accessibilityElementsHidden
             color={
               alert.active ? theme.colors.positive : theme.colors.mutedText
             }
+            importantForAccessibility="no-hide-descendants"
             name={alert.active ? "bell-ring-outline" : "bell-off-outline"}
             size={15}
           />

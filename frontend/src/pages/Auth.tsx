@@ -134,7 +134,9 @@ function Auth() {
       <View style={styles.hero}>
         <View style={styles.logo}>
           <MaterialDesignIcon
+            accessibilityElementsHidden
             color={theme.colors.primary}
+            importantForAccessibility="no-hide-descendants"
             name="chart-timeline-variant"
             size={30}
           />
@@ -188,13 +190,21 @@ function Auth() {
         />
 
         {!!requestError && (
-          <Text style={styles.requestError}>{requestError}</Text>
+          <Text
+            accessibilityLiveRegion="polite"
+            accessibilityRole="alert"
+            style={styles.requestError}
+          >
+            {requestError}
+          </Text>
         )}
 
         <AppButton
           icon={
             <MaterialDesignIcon
+              accessibilityElementsHidden
               color="#ffffff"
+              importantForAccessibility="no-hide-descendants"
               name={mode === "login" ? "login" : "account-plus-outline"}
               size={18}
             />
