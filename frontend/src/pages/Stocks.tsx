@@ -1,6 +1,6 @@
 import MaterialDesignIcon from "@react-native-vector-icons/material-design-icons";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
@@ -46,6 +46,7 @@ function Stocks({ navigation }: Props) {
 
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const normalizedQuery = submittedQuery?.trim() ?? "";
   const hasSubmittedQuery = normalizedQuery.length > 0;
 
@@ -62,6 +63,15 @@ function Stocks({ navigation }: Props) {
   const stocksSocket = useStocksSocket(defaultStockSymbols);
   const stockResults = getUniqueStocks(stocksQuery.data);
 
+  function refreshResults() {
+    if (!hasSubmittedQuery || isRefreshing) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    stocksQuery.refetch();
+  }
+
   function submitSearch() {
     const nextQuery = query.trim();
 
@@ -77,6 +87,20 @@ function Stocks({ navigation }: Props) {
 
     setSubmittedQuery(nextQuery);
   }
+
+  useEffect(() => {
+    if (!isRefreshing || stocksQuery.isFetching) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setIsRefreshing(false);
+    }, 350);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isRefreshing, stocksQuery.isFetching]);
 
   return (
     <Screen>
@@ -96,7 +120,8 @@ function Stocks({ navigation }: Props) {
             />
           }
           disabled={!hasSubmittedQuery}
-          onPress={() => stocksQuery.refetch()}
+          loading={isRefreshing}
+          onPress={refreshResults}
           size="small"
           title={t("stocks.refresh")}
           variant="secondary"
