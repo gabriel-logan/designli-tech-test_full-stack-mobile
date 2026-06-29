@@ -15,6 +15,14 @@ export default function envGlobal(): EnvGlobalConfig {
     throw new Error("Missing required environment variable: NODE_ENV");
   }
 
+  if (
+    nodeEnv !== "development" &&
+    nodeEnv !== "production" &&
+    nodeEnv !== "test"
+  ) {
+    throw new Error("Invalid value for environment variable: NODE_ENV");
+  }
+
   if (!port) {
     throw new Error("Missing required environment variable: SERVER_PORT");
   }
@@ -27,7 +35,7 @@ export default function envGlobal(): EnvGlobalConfig {
 
   return {
     server: {
-      nodeEnv: nodeEnv as EnvGlobalConfig["server"]["nodeEnv"],
+      nodeEnv,
       port: Number.parseInt(port, 10),
       allowedOrigins,
     },
