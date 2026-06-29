@@ -1,3 +1,5 @@
+import { FRONTEND_BACKEND_URL } from "@env";
+
 import en from "./utils/locales/en.json";
 
 export const userStorageKey = "user-storage";
@@ -8,10 +10,8 @@ export const resources = {
   },
 } as const;
 
-const localBackendUrl = "http://192.168.100.3:3000";
+export const apiBaseUrl = `${FRONTEND_BACKEND_URL}/api`;
 
-export const apiBaseUrl = `${localBackendUrl}/api`;
-
-export const socketBaseUrl = localBackendUrl;
+export const socketBaseUrl = FRONTEND_BACKEND_URL;
 
 export const defaultStockSymbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"];
