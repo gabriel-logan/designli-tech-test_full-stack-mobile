@@ -17,7 +17,7 @@ push notifications when an alert target is reached.
 ```text
 backend/   NestJS API, websocket gateway, alert processor, database schema
 frontend/  React Native mobile application
-schema.sql PostgreSQL desired schema used by Atlas
+backend/schema.sql PostgreSQL desired schema used by Atlas and Docker Compose
 ```
 
 ## Backend Setup
@@ -46,8 +46,9 @@ The backend API runs at `http://localhost:3000/api`, with Swagger docs at
 
 ## Frontend Setup
 
-Update `frontend/src/constants.ts` so `localBackendUrl` points to the machine
-running the backend from the emulator/device network.
+Copy `frontend/.env.example` to `frontend/.env` and set
+`FRONTEND_BACKEND_URL` to an address reachable from the emulator or device.
+For the Android emulator, `http://10.0.2.2:3000` points to the host machine.
 
 ```bash
 cd frontend
@@ -55,6 +56,23 @@ npm install
 npm start
 npm run android
 ```
+
+## Firebase Client Configuration
+
+`frontend/android/app/google-services.json` is intentionally committed for this
+coding-test repository so reviewers can build the Android app and validate the
+Firebase Cloud Messaging integration without requesting extra client
+configuration files.
+
+This file is Firebase Android client configuration. It identifies the Firebase
+project used by the mobile app, but it is not the Firebase Admin SDK private key
+used by the backend to send notifications. Server-side push delivery still
+requires `FIREBASE_SERVICE_ACCOUNT_JSON` in `backend/.env`, and that private
+service-account JSON must not be committed.
+
+For a production repository, the Firebase project should be restricted in the
+Firebase/Google Cloud consoles and the client config can be regenerated or
+managed through the team's normal secret/configuration process.
 
 ## Live Quotes And Alerts
 
