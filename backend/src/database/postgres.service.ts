@@ -11,6 +11,12 @@ import { Pool } from "pg";
 
 import type { EnvDatabaseConfig } from "../configs/env.database";
 
+declare module "pg" {
+  interface ClientConfig {
+    enableChannelBinding?: boolean;
+  }
+}
+
 type QueryParams = readonly unknown[];
 type QueryConnection = Pool | PoolClient;
 
@@ -40,6 +46,8 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
       max: database.maxConnections,
       idleTimeoutMillis: database.idleTimeoutMillis,
       allowExitOnIdle: false,
+      ssl: database.ssl,
+      enableChannelBinding: database.channelBinding,
     });
 
     this.pool.on("error", (error) => {
