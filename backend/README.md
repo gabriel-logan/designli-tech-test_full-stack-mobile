@@ -38,6 +38,27 @@ Service accounts > Generate new private key, then set:
 FIREBASE_SERVICE_ACCOUNT_PATH=/absolute/path/to/firebase-service-account.json
 ```
 
+## Docker
+
+The backend can run fully in Docker with PostgreSQL, schema application, and the
+NestJS API container.
+
+```bash
+cp .env.example .env
+# fill FINNHUB_API_KEY and JWT_SECRET
+docker compose up --build
+```
+
+The API runs at `http://localhost:3000/api`. Swagger is available at
+`http://localhost:3000/api/docs`.
+
+Inside Docker, the API uses the Compose service name `postgres` as the database
+host. The `schema` service applies `schema.sql` before the API starts.
+
+For Firebase push notifications in Docker, mount your Admin SDK JSON and set
+`DOCKER_FIREBASE_SERVICE_ACCOUNT_PATH` to the container path you mounted. If it
+is not set, push notifications are disabled and the rest of the API still runs.
+
 ## Database
 
 The database is PostgreSQL in Docker. Atlas is configured in schema-based mode:

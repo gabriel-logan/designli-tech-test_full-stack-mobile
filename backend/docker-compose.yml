@@ -1,4 +1,45 @@
 services:
+  api:
+    build:
+      context: .
+    container_name: designli-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      schema:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      SERVER_PORT: ${SERVER_PORT:-3000}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-designli}
+      POSTGRES_MAX_CONNECTIONS: ${POSTGRES_MAX_CONNECTIONS:-10}
+      POSTGRES_IDLE_TIMEOUT_MILLIS: ${POSTGRES_IDLE_TIMEOUT_MILLIS:-60000}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY:?Set FINNHUB_API_KEY in backend/.env before starting Docker}
+      FINNHUB_DEFAULT_SYMBOLS: ${FINNHUB_DEFAULT_SYMBOLS:-AAPL,MSFT,GOOGL,AMZN,TSLA}
+      STOCK_PRICE_POLL_INTERVAL_MS: ${STOCK_PRICE_POLL_INTERVAL_MS:-5000}
+      FINNHUB_QUOTE_REFRESH_INTERVAL_MS: ${FINNHUB_QUOTE_REFRESH_INTERVAL_MS:-60000}
+      FIREBASE_SERVICE_ACCOUNT_PATH: ${DOCKER_FIREBASE_SERVICE_ACCOUNT_PATH:-}
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "const http=require(''http'');const port=process.env.SERVER_PORT||3000;const req=http.get(''http://127.0.0.1:''+port+''/api/health'',res=>process.exit(res.statusCode===200?0:1));req.on(''error'',()=>process.exit(1));req.setTimeout(3000,()=>{req.destroy();process.exit(1);});"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   postgres:
     image: postgres:16-alpine
     container_name: designli-postgres
@@ -16,6 +57,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  schema:
+    image: postgres:16-alpine
+    container_name: designli-schema
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGDATABASE: ${POSTGRES_DATABASE:-designli}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      PGUSER: ${POSTGRES_USER:-postgres}
+    volumes:
+      - ./schema.sql:/schema.sql:ro
+    command: ["sh", "-c", "psql -v ON_ERROR_STOP=1 -h postgres -f /schema.sql"]
 
 volumes:
   postgres-data:

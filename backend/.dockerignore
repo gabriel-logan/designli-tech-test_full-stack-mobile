@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+secret
+*.log
+Dockerfile
+docker-compose.yml
+.git
+.gitignore
+.temp
+.tmp
